@@ -13,14 +13,14 @@ import (
 )
 
 type BasicTokenStore struct {
-	bunDB bun.IDB
+	bdb bun.IDB
 }
 
 var _ secure.TokenStore = (*BasicTokenStore)(nil)
 
-func NewBasicTokenStore(bunDB *bun.DB) (*BasicTokenStore, error) {
+func NewBasicTokenStore(bdb bun.IDB) (*BasicTokenStore, error) {
 	return &BasicTokenStore{
-		bunDB: bunDB,
+		bdb: bdb,
 	}, nil
 }
 
@@ -47,7 +47,7 @@ func (s *BasicTokenStore) Renew(string) (string, error) {
 func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 	if username, password, err := parseBasicAuth(value); err == nil {
 		client := &models.Client{}
-		if err := s.bunDB.NewSelect().Model(client).
+		if err := s.bdb.NewSelect().Model(client).
 			Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
 			Where(`secret_key = ?`, username).Scan(context.Background()); err != nil {
 			return nil, secure.ErrInvalidToken

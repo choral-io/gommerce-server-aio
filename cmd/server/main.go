@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/choral-io/gommerce-server-core/config"
@@ -11,7 +10,6 @@ import (
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/server"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-	"github.com/uptrace/bun"
 
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -38,9 +36,7 @@ func main() {
 		fx.Provide(otel.NewMeterProvider),                         // create meter provider for opentelemetry
 		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // create redis client and redis seq
 		fx.Provide(data.NewIdWorker),                              // create id worker
-		fx.Provide(data.NewBunDB, func(bdb *bun.DB) (*sql.DB, bun.IDB) { // create bun.DB and expose sql.DB and bun.IDB from it
-			return bdb.DB, bdb
-		}),
+		fx.Provide(data.NewBunDB),
 		fx.Provide(secure.NewTokenStore, srv_v1b.NewBasicTokenStore), // create token stores
 		fx.Provide(func(uts secure.TokenStore, cts *srv_v1b.BasicTokenStore) *secure.ServerAuthorizer { // create server authorizer
 			return secure.NewServerAuthorizer(map[string]secure.TokenStore{
@@ -65,6 +61,7 @@ func main() {
 				server.WithLoggingInterceptor(l),
 				server.WithRecoveryInterceptor(nil),
 				server.WithSecureInterceptor(auth, matcher),
+				server.WithValidatorInterceptor(),
 				server.WithRegistrations(regs...),
 			)
 		}, fx.ParamTags(``, ``, ``, ``, ``, ``, grpc_server_fx_tag))),

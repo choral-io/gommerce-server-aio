@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"strconv"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/redis/rueidis"
+	"github.com/uptrace/bun"
 	"google.golang.org/grpc"
 
 	"golang.org/x/crypto/bcrypt"
@@ -139,13 +139,13 @@ func (p *passwordServiceServer) ValidatePassword(_ context.Context, req *utils.V
 type dateTimeServiceServer struct {
 	utils.UnimplementedDateTimeServiceServer
 
-	sdb *sql.DB
+	bdb bun.IDB
 	rdb rueidis.Client
 }
 
-func NewDateTimeServiceServer(sdb *sql.DB, rdb rueidis.Client) utils.DateTimeServiceServer {
+func NewDateTimeServiceServer(bdb bun.IDB, rdb rueidis.Client) utils.DateTimeServiceServer {
 	return &dateTimeServiceServer{
-		sdb: sdb,
+		bdb: bdb,
 		rdb: rdb,
 	}
 }
@@ -160,7 +160,7 @@ func (s *dateTimeServiceServer) RegisterGatewayClient(ctx context.Context, mux *
 
 func (d *dateTimeServiceServer) GetDBNow(ctx context.Context, _ *utils.GetDBNowRequest) (*utils.GetDBNowResponse, error) {
 	var now time.Time
-	if err := d.sdb.QueryRowContext(ctx, "SELECT NOW()").Scan(&now); err != nil {
+	if err := d.bdb.QueryRowContext(ctx, "SELECT NOW()").Scan(&now); err != nil {
 		return nil, err
 	}
 	return &utils.GetDBNowResponse{
