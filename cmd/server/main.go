@@ -36,15 +36,10 @@ func main() {
 		fx.Provide(otel.NewMeterProvider),                         // create meter provider for opentelemetry
 		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // create redis client and redis seq
 		fx.Provide(data.NewIdWorker),                              // create id worker
-		fx.Provide(data.NewBunDB),
-		fx.Provide(secure.NewTokenStore, srv_v1b.NewBasicTokenStore), // create token stores
-		fx.Provide(func(uts secure.TokenStore, cts *srv_v1b.BasicTokenStore) *secure.ServerAuthorizer { // create server authorizer
-			return secure.NewServerAuthorizer(map[string]secure.TokenStore{
-				secure.AUTH_SCHEMA_BEARER: uts,
-				secure.AUTH_SCHEMA_BASIC:  cts,
-			})
-		}),
-		fx.Provide(srv.NewSelectorMatcher),
+		fx.Provide(data.NewBunDB),                                 // create bun db
+		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // create token stores
+		fx.Provide(srv.NewServerAuthorizer),                       // create server authorizer
+		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
 		fx.Provide(fx.Annotate(server.NewHealthServiceServer, grpc_server_anns...)),
 		fx.Provide(fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_server_anns...)),
 		fx.Provide(fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_server_anns...)),

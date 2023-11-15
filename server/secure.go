@@ -1,4 +1,4 @@
-package v1beta
+package server
 
 import (
 	"context"
@@ -71,4 +71,11 @@ func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 
 func (s *BasicTokenStore) Revoke(string) (*secure.Token, error) {
 	return nil, secure.ErrUnsupportedOperation
+}
+
+func NewServerAuthorizer(uts secure.TokenStore, cts *BasicTokenStore) *secure.ServerAuthorizer { // create server authorizer
+	return secure.NewServerAuthorizer(map[string]secure.TokenStore{
+		secure.AUTH_SCHEMA_BEARER: uts,
+		secure.AUTH_SCHEMA_BASIC:  cts,
+	})
 }
