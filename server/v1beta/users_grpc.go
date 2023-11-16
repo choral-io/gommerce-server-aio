@@ -52,14 +52,11 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	res := &iam.ListUsersResponse{
-		Items: make([]*iam.User, len(users)),
 		Page:  req.Page,
 		Size:  req.Size,
 		Total: int64(total),
+		Items: make([]*iam.User, len(users)),
 	}
 	for i, u := range users {
 		res.Items[i] = toUserPB(u)

@@ -40,7 +40,7 @@ func (s *BasicTokenStore) Issue(*secure.Token, time.Duration) (string, error) {
 	return "", secure.ErrUnsupportedOperation
 }
 
-func (s *BasicTokenStore) Renew(string) (string, error) {
+func (s *BasicTokenStore) Renew(string, time.Duration) (string, error) {
 	return "", secure.ErrUnsupportedOperation
 }
 

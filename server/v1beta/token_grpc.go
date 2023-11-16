@@ -9,9 +9,12 @@ import (
 
 	iam "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 	"github.com/choral-io/gommerce-server-aio/data/models"
+	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/uptrace/bun"
 )
@@ -19,13 +22,15 @@ import (
 type tokensServiceServer struct {
 	iam.UnimplementedTokensServiceServer
 
-	ts  secure.TokenStore
+	cfg config.TokenConfig
 	bdb bun.IDB
+	ts  secure.TokenStore
 	lps map[string]LoginProvider
 }
 
-func NewTokensServiceServer(bdb bun.IDB, ts secure.TokenStore) iam.TokensServiceServer {
+func NewTokensServiceServer(cfg config.TokenConfig, bdb bun.IDB, ts secure.TokenStore) iam.TokensServiceServer {
 	s := &tokensServiceServer{
+		cfg: cfg,
 		bdb: bdb,
 		ts:  ts,
 		lps: make(map[string]LoginProvider, 2),
@@ -47,7 +52,6 @@ func (s *tokensServiceServer) RegisterGatewayClient(ctx context.Context, mux *ru
 
 func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTokenRequest) (*iam.CreateTokenResponse, error) {
 	now := time.Now()
-	ttl := 7 * 24 * 60 * 60 * time.Second
 	provider, ok := s.lps[strings.ToUpper(req.Provider)]
 	if !ok {
 		return nil, errors.New("login provider not found")
@@ -94,8 +98,14 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	for i, r := range roles {
 		scope[i] = "ROLE_" + r
 	}
-	accessToken, _ := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_BEARER, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), ttl)
-	refreshToken, _ := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_REFRESH, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), ttl*10)
+	uat, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_BEARER, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetAccessTokenTTL())
+	if err != nil {
+		return nil, err
+	}
+	urt, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_REFRESH, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetRefreshTokenTTL())
+	if err != nil {
+		return nil, err
+	}
 	if err := s.bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		res, err := tx.NewUpdate().Model((*models.User)(nil)).
 			Set(`"updated_at" = ?`, now).
@@ -115,13 +125,28 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 		return nil, err
 	}
 	return &iam.CreateTokenResponse{
-		TokenType:    "Bearer",
-		ExpiresIn:    int32(time.Until(now.Add(ttl)).Seconds()),
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		TokenType:    secure.TOKEN_TYPE_BEARER,
+		ExpiresIn:    int32(time.Until(now.Add(s.cfg.GetAccessTokenTTL())).Seconds()),
+		AccessToken:  uat,
+		RefreshToken: urt,
 	}, nil
 }
 
-func (s *tokensServiceServer) RefreshToken(context.Context, *iam.RefreshTokenRequest) (*iam.RefreshTokenResponse, error) {
-	return nil, errors.New("refresh token not implemented")
+func (s *tokensServiceServer) RefreshToken(ctx context.Context, req *iam.RefreshTokenRequest) (*iam.RefreshTokenResponse, error) {
+	now := time.Now()
+	uat, err := s.ts.Renew(req.GetRefreshToken(), s.cfg.GetAccessTokenTTL())
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid refresh token: %s", err)
+	}
+	token, _ := s.ts.Verify(uat)
+	urt, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_REFRESH, token.Realm(), token.Client(), token.Subject(), token.Scope()), s.cfg.GetRefreshTokenTTL())
+	if err != nil {
+		return nil, err
+	}
+	return &iam.RefreshTokenResponse{
+		TokenType:    secure.TOKEN_TYPE_BEARER,
+		ExpiresIn:    int32(time.Until(now.Add(s.cfg.GetAccessTokenTTL())).Seconds()),
+		AccessToken:  uat,
+		RefreshToken: urt,
+	}, nil
 }
