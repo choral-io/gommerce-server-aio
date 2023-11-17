@@ -42,6 +42,7 @@ CREATE TABLE "users" (
     "flags" BIGINT NOT NULL,
     "attributes" jsonb DEFAULT NULL,
     "display_name" VARCHAR(128) DEFAULT NULL,
+    "gender" VARCHAR(32) DEFAULT NULL,
     "phone_number" VARCHAR(64) DEFAULT NULL,
     "email_address" VARCHAR(64) DEFAULT NULL,
     "description" VARCHAR(255) DEFAULT NULL,

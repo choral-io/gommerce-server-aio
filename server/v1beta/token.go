@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/uptrace/bun"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -28,9 +27,6 @@ func (p *FormPasswordLoginProvider) Name() string {
 }
 
 func (p *FormPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
-	if err := secure.Authorize(ctx, secure.AuthFuncRequireSchema(secure.AUTH_SCHEMA_BASIC)); err != nil {
-		return nil, err
-	}
 	var login models.Login
 	if err := p.bdb.NewSelect().Model(&login).
 		Where(`"login"."realm_id" = ?`, realmId).

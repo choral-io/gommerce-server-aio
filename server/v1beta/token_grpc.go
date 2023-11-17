@@ -50,6 +50,13 @@ func (s *tokensServiceServer) RegisterGatewayClient(ctx context.Context, mux *ru
 	return iam.RegisterTokensServiceHandler(ctx, mux, conn)
 }
 
+func (s *tokensServiceServer) Authorize(ctx context.Context, procedure string) error {
+	if procedure == iam.TokensService_CreateToken_FullMethodName || procedure == iam.TokensService_RefreshToken_FullMethodName {
+		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AUTH_SCHEMA_BASIC))
+	}
+	return nil
+}
+
 func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTokenRequest) (*iam.CreateTokenResponse, error) {
 	now := time.Now()
 	provider, ok := s.lps[strings.ToUpper(req.Provider)]

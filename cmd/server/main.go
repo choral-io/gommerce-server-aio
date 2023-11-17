@@ -51,7 +51,7 @@ func main() {
 			cfg config.ServerHTTPConfig, l logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
 			auth *secure.ServerAuthorizer, matcher selector.Matcher, regs []any,
 		) (http.Handler, error) {
-			return server.NewGRPCHandler(cfg,
+			return server.NewGrpcHandler(cfg,
 				server.WithOTELStatsHandler(tp, mp),
 				server.WithLoggingInterceptor(l),
 				server.WithRecoveryInterceptor(nil),

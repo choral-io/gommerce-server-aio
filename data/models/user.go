@@ -29,6 +29,7 @@ type User struct {
 	Flags          int64             `json:"flags" bun:"flags"`
 	Attributes     map[string]string `json:"attributes" bun:"attributes,json_use_number"`
 	DisplayName    sql.NullString    `json:"display_name" bun:"display_name"`
+	Gender         sql.NullString    `json:"gender" bun:"gender"`
 	PhoneNumber    sql.NullString    `json:"phone_number" bun:"phone_number"`
 	EmailAddress   sql.NullString    `json:"email_address" bun:"email_address"`
 	Description    sql.NullString    `json:"description" bun:"description"`
