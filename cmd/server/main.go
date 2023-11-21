@@ -35,11 +35,12 @@ func main() {
 		fx.Provide(otel.NewTracerProvider),                        // create tracer provider for opentelemetry
 		fx.Provide(otel.NewMeterProvider),                         // create meter provider for opentelemetry
 		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // create redis client and redis seq
-		fx.Provide(data.NewIdWorker),                              // create id worker
 		fx.Provide(data.NewBunDB),                                 // create bun db
+		fx.Provide(data.NewIdWorker),                              // create id worker
 		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // create token stores
 		fx.Provide(srv.NewServerAuthorizer),                       // create server authorizer
 		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
+		fx.Provide(server.NewHTTPServer),                          // create http server
 		fx.Provide(fx.Annotate(server.NewHealthServiceServer, grpc_server_anns...)),
 		fx.Provide(fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_server_anns...)),
 		fx.Provide(fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_server_anns...)),
@@ -47,22 +48,22 @@ func main() {
 		fx.Provide(fx.Annotate(srv_v1.NewDateTimeServiceServer, grpc_server_anns...)),
 		fx.Provide(fx.Annotate(srv_v1b.NewTokensServiceServer, grpc_server_anns...)),
 		fx.Provide(fx.Annotate(srv_v1b.NewUsersServiceServer, grpc_server_anns...)),
-		fx.Provide(fx.Annotate(func(
-			cfg config.ServerHTTPConfig, l logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
+		fx.Provide(fx.Annotate(func(cfg config.ServerHTTPConfig,
+			logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
 			auth *secure.ServerAuthorizer, matcher selector.Matcher, regs []any,
 		) (http.Handler, error) {
 			return server.NewGrpcHandler(cfg,
-				server.WithOTELStatsHandler(tp, mp),
-				server.WithLoggingInterceptor(l),
-				server.WithRecoveryInterceptor(nil),
-				server.WithSecureInterceptor(auth, matcher),
-				server.WithValidatorInterceptor(),
-				server.WithRegistrations(regs...),
+				server.WithOTELStatsHandler(tp, mp),         // add opentelemetry stats handler
+				server.WithLoggingInterceptor(logger),       // add logging interceptor
+				server.WithRecoveryInterceptor(nil),         // add recovery interceptor
+				server.WithSecureInterceptor(auth, matcher), // add secure interceptor
+				server.WithValidatorInterceptor(),           // add validator interceptor
+				server.WithRegistrations(regs...),           // add registrations
 			)
 		}, fx.ParamTags(``, ``, ``, ``, ``, ``, grpc_server_fx_tag))),
-		fx.Provide(server.NewHTTPServer), // create http server
+		fx.Invoke(data.SetDefaultIdWorker), // set default id worker
 		fx.Invoke(func(srv *server.HTTPServer, lc fx.Lifecycle) { // register http server to lifecycle
-			lc.Append(fx.Hook{OnStart: srv.Start, OnStop: srv.Stop})
+			lc.Append(fx.Hook{OnStart: srv.Start, OnStop: srv.Stop}) // register http server to lifecycle
 		}),
 		fx.WithLogger(func(l logging.Logger) fxevent.Logger { // create logger for fx
 			return logging.NewFxeventLogger(l).UseEventLevel(logging.LevelDebug)

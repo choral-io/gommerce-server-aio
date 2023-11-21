@@ -9,6 +9,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+const (
+	REALM_FLAGS_ALLOW_REGISTRATION = 1 << 0
+)
+
 type Realm struct {
 	bun.BaseModel `bun:"table:realms,alias:realm"`
 
@@ -19,6 +23,7 @@ type Realm struct {
 	CreatedAt   time.Time      `json:"created_at" bun:"created_at"`
 	UpdatedAt   sql.NullTime   `json:"updated_at" bun:"updated_at"`
 	DeletedAt   sql.NullTime   `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
+	Flags       int64          `json:"flags" bun:"flags"`
 	Name        string         `json:"name" bun:"name"`
 	Title       string         `json:"title" bun:"title"`
 	Description sql.NullString `json:"description" bun:"description"`
@@ -27,9 +32,7 @@ type Realm struct {
 func (m *Realm) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
-		if idw := data.IdWorkerFromContext(ctx); idw != nil {
-			m.Id = idw.NextHex()
-		}
+		m.Id = data.DefaultIdWorker().NextHex()
 		m.Immutable = false
 		m.CreatedAt = time.Now()
 		m.UpdatedAt = sql.NullTime{Valid: false}
@@ -40,4 +43,8 @@ func (m *Realm) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 		m.UpdatedAt = m.DeletedAt
 	}
 	return nil
+}
+
+func (m *Realm) AllowRegistration() bool {
+	return m.Flags&REALM_FLAGS_ALLOW_REGISTRATION != 0
 }

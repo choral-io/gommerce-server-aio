@@ -10,8 +10,9 @@ CREATE TABLE "realms" (
     "created_at" TIMESTAMP(6) NOT NULL,
     "updated_at" TIMESTAMP(6) DEFAULT NULL,
     "deleted_at" TIMESTAMP(6) DEFAULT NULL,
-    "name" VARCHAR(128) NOT NULL,
-    "title" VARCHAR(128) NOT NULL,
+    "flags" BIGINT NOT NULL,
+    "name" VARCHAR(64) NOT NULL,
+    "title" VARCHAR(64) NOT NULL,
     "description" VARCHAR(255) DEFAULT NULL,
     CONSTRAINT "pk_realms" PRIMARY KEY ("id")
 );
@@ -20,7 +21,7 @@ CREATE UNIQUE INDEX "ix_realms_name" ON "realms" ("name");
 
 -- realms data
 
-INSERT INTO "realms" VALUES ('030a67b921005000', FALSE, TRUE, '2023-08-28 22:31:26.596', NULL, NULL, 'admin', 'Admin', NULL);
+INSERT INTO "realms" VALUES ('030a67b921005000', FALSE, TRUE, '2023-08-28 22:31:26.596', NULL, NULL, B'0000'::int8, 'admin', 'Admin', NULL);
 
 
 -- users definition
@@ -153,7 +154,7 @@ CREATE TABLE "logins" (
     "deleted_at" TIMESTAMP(6) DEFAULT NULL,
     "expires_at" TIMESTAMP(6) DEFAULT NULL,
     "provider" VARCHAR(16) NOT NULL,
-    "identifier" VARCHAR(32) NOT NULL,
+    "identifier" VARCHAR(64) NOT NULL,
     "credential" VARCHAR(64) DEFAULT NULL,
     "metadata" jsonb DEFAULT NULL,
     CONSTRAINT "pk_logins" PRIMARY KEY ("id"),

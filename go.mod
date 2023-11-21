@@ -11,7 +11,7 @@ require (
 	github.com/choral-io/gommerce-server-core v0.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1
-	github.com/redis/rueidis v1.0.21
+	github.com/redis/rueidis v1.0.22
 	github.com/uptrace/bun v1.1.16
 	github.com/uptrace/bun/driver/pgdriver v1.1.16
 	go.opentelemetry.io/otel/metric v1.21.0
@@ -61,8 +61,8 @@ require (
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )

@@ -42,9 +42,7 @@ type User struct {
 func (m *User) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
-		if idw := data.IdWorkerFromContext(ctx); idw != nil {
-			m.Id = idw.NextHex()
-		}
+		m.Id = data.DefaultIdWorker().NextHex()
 		m.Immutable = false
 		m.CreatedAt = time.Now()
 		m.UpdatedAt = sql.NullTime{Valid: false}
