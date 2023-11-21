@@ -3,10 +3,16 @@ package v1beta
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/uptrace/bun"
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	LOGIN_PROVIDER_FORM_PASSWORD = "FORM_PASSWORD"
+	LOGIN_PROVIDER_SMS_OTP_CODE  = "SMS_OTP_CODE"
 )
 
 type LoginProvider interface {
@@ -23,14 +29,14 @@ func NewFormPasswordLoginProvider(bdb bun.IDB) LoginProvider {
 }
 
 func (p *FormPasswordLoginProvider) Name() string {
-	return "FORM_PASSWORD"
+	return LOGIN_PROVIDER_FORM_PASSWORD
 }
 
 func (p *FormPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
 	var login models.Login
 	if err := p.bdb.NewSelect().Model(&login).
 		Where(`"login"."realm_id" = ?`, realmId).
-		Where(`"login"."provider" = 'FORM_PASSWORD'`).
+		Where(`"login"."provider" = ?`, LOGIN_PROVIDER_FORM_PASSWORD).
 		Where(`"login"."identifier" = ?`, username).
 		Relation("User").Scan(ctx); err != nil {
 		return nil, err
@@ -51,9 +57,9 @@ func NewSMSOTPCodeLoginProvider() LoginProvider {
 }
 
 func (p *SMSOTPCodeLoginProvider) Name() string {
-	return "SMS_OTP_CODE"
+	return LOGIN_PROVIDER_SMS_OTP_CODE
 }
 
 func (p *SMSOTPCodeLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
-	return nil, errors.New("login provider 'SMS_OTP_CODE' not implemented")
+	return nil, fmt.Errorf("login provider '%s' not implemented", LOGIN_PROVIDER_SMS_OTP_CODE)
 }

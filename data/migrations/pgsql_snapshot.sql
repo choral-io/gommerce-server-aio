@@ -57,7 +57,7 @@ CREATE UNIQUE INDEX "ix_users_realm_id_email_address" ON "users" ("realm_id", "e
 
 -- users data
 
-INSERT INTO "users" VALUES ('030a67b921005000', '030a67b921005000', NULL, FALSE, TRUE, TRUE, TRUE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, NULL, NULL, 0, '{"profile.display_name": "Admin"}', 'Admin', NULL, NULL, NULL);
+INSERT INTO "users" VALUES ('030a67b921005000', '030a67b921005000', NULL, FALSE, TRUE, TRUE, TRUE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, NULL, NULL, 0, '{"profile.display_name": "Admin"}', 'Admin', NULL, NULL, NULL, NULL);
 
 
 -- clients definition

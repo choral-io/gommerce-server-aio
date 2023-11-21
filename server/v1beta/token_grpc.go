@@ -36,8 +36,8 @@ func NewTokensServiceServer(cfg config.TokenConfig, bdb bun.IDB, ts secure.Token
 		lps: make(map[string]LoginProvider, 2),
 	}
 
-	s.lps["FORM_PASSWORD"] = NewFormPasswordLoginProvider(bdb)
-	s.lps["SMS_OTP_CODE"] = NewSMSOTPCodeLoginProvider()
+	s.lps[LOGIN_PROVIDER_FORM_PASSWORD] = NewFormPasswordLoginProvider(bdb)
+	s.lps[LOGIN_PROVIDER_SMS_OTP_CODE] = NewSMSOTPCodeLoginProvider()
 
 	return s
 }
