@@ -166,7 +166,7 @@ CREATE UNIQUE INDEX "ix_logins_realm_id_provider_identifier" ON "logins" ("realm
 
 -- logins data
 
-INSERT INTO "logins" VALUES ('030a67b921005000', '030a67b921005000', '030a67b921005000', FALSE, FALSE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, 'FORM_PASSWORD', 'admin', NULL, NULL);
+INSERT INTO "logins" VALUES ('030a67b921005000', '030a67b921005000', '030a67b921005000', FALSE, FALSE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, 'FORM_PASSWORD', 'admin', NULL, '{}');
 
 
 -- devices definition

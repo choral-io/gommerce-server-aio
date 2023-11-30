@@ -52,7 +52,7 @@ func main() {
 			logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
 			auth *secure.ServerAuthorizer, matcher selector.Matcher, regs []any,
 		) (http.Handler, error) {
-			return server.NewGrpcHandler(cfg,
+			return server.NewGRPCHandler(cfg,
 				server.WithOTELStatsHandler(tp, mp),         // add opentelemetry stats handler
 				server.WithLoggingInterceptor(logger),       // add logging interceptor
 				server.WithRecoveryInterceptor(nil),         // add recovery interceptor
