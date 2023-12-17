@@ -2,6 +2,7 @@ package v1beta
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/secure"
+	"github.com/choral-io/gommerce-server-core/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -18,6 +20,16 @@ import (
 
 	"github.com/uptrace/bun"
 )
+
+func (p *FormPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error {
+	if req.GetUsername().GetValue() == "" {
+		return validator.NewError("username", "username is required when using form password login provider")
+	}
+	if req.GetPassword().GetValue() == "" {
+		return validator.NewError("password", "password is required when using form password login provider")
+	}
+	return nil
+}
 
 type tokensServiceServer struct {
 	iam.UnimplementedTokensServiceServer
@@ -66,16 +78,25 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	if provider == nil {
 		return nil, errors.New("login provider not implemented")
 	}
+	if v, ok := provider.(interface {
+		Validate(*iam.CreateTokenRequest) error
+	}); ok {
+		if err := v.Validate(req); err != nil {
+			return nil, err
+		}
+	}
 	var realm models.Realm
 	if err := s.bdb.NewSelect().Model(&realm).Where(`"realm"."name" = ?`, req.Realm).Scan(ctx); err != nil {
 		return nil, fmt.Errorf("realm with name %s not found", req.Realm)
 	}
 	login, err := provider.Login(ctx, realm.Id, req.Username.GetValue(), req.Password.GetValue(), req.IdToken.GetValue(), nil)
-	if err != nil {
-		return nil, err
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, validator.NewError("username", "username not found")
+	} else if err != nil {
+		return nil, validator.NewError("", err.Error())
 	}
 	if login.User == nil {
-		return nil, errors.New("user not found")
+		return nil, validator.NewError("username", "username not found")
 	}
 	if login.User.ExpiresAt.Valid && !login.User.ExpiresAt.Time.After(time.Now()) {
 		return nil, errors.New("user expired")
