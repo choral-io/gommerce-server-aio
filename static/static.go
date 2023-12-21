@@ -5,9 +5,10 @@ import (
 	"io/fs"
 )
 
-//go:embed favicon.ico
-var favicon embed.FS
+//go:embed *
+//go:embed assets
+var staticFS embed.FS
 
-func GetFavicon() fs.FS {
-	return favicon
+func GetStaticFS() fs.FS {
+	return staticFS
 }

@@ -43,6 +43,7 @@ func main() {
 		fx.Provide(server.NewHTTPServer),                          // create http server
 		fx.Provide( // register grpc servers
 			fx.Annotate(server.NewHealthServiceServer, grpc_server_anns...),
+			fx.Annotate(srv_v1.NewStaticFilesServer, grpc_server_anns...),
 			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_server_anns...),
 			fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_server_anns...),
 			fx.Annotate(srv_v1.NewPasswordServiceServer, grpc_server_anns...),

@@ -11,14 +11,14 @@ require (
 	github.com/choral-io/gommerce-server-core v0.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1
-	github.com/redis/rueidis v1.0.24
+	github.com/redis/rueidis v1.0.25
 	github.com/uptrace/bun v1.1.16
 	github.com/uptrace/bun/driver/pgdriver v1.1.16
 	go.opentelemetry.io/otel/metric v1.21.0
 	go.opentelemetry.io/otel/trace v1.21.0
 	go.uber.org/fx v1.20.1
-	golang.org/x/crypto v0.16.0
-	google.golang.org/grpc v1.60.0
+	golang.org/x/crypto v0.17.0
+	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.31.0
 )
 
@@ -26,7 +26,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
 	github.com/expr-lang/expr v1.15.7 // indirect
-	github.com/go-logr/logr v1.3.0 // indirect
+	github.com/go-logr/logr v1.4.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
