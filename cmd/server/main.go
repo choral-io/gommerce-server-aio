@@ -24,7 +24,8 @@ import (
 
 var (
 	grpc_server_fx_tag = `group:"grpc_servers"`
-	grpc_server_anns   = []fx.Annotation{fx.As(new(any)), fx.ResultTags(grpc_server_fx_tag)}
+	grpc_servers_anns  = []fx.Annotation{fx.As(new(any)), fx.ResultTags(grpc_server_fx_tag)}
+	grpc_handler_anns  = fx.ParamTags(``, grpc_server_fx_tag, ``, ``, ``, ``, ``)
 )
 
 func main() {
@@ -42,20 +43,20 @@ func main() {
 		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
 		fx.Provide(server.NewHTTPServer),                          // create http server
 		fx.Provide( // register grpc servers
-			fx.Annotate(server.NewHealthServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1.NewStaticFilesServer, grpc_server_anns...),
-			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1.NewPasswordServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1.NewDateTimeServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1b.NewTokensServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1b.NewUsersServiceServer, grpc_server_anns...),
-			fx.Annotate(srv_v1b.NewStateStoreServiceServer, grpc_server_anns...),
+			fx.Annotate(server.NewHealthServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1.NewStaticFilesServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1.NewPasswordServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1.NewDateTimeServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1b.NewTokensServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1b.NewUsersServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1b.NewStateStoreServiceServer, grpc_servers_anns...),
 		),
 		fx.Provide( // create grpc handler
-			fx.Annotate(func(cfg config.ServerHTTPConfig,
+			fx.Annotate(func(cfg config.ServerHTTPConfig, regs []any,
 				logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
-				auth *secure.ServerAuthorizer, matcher selector.Matcher, regs []any,
+				auth *secure.ServerAuthorizer, matcher selector.Matcher,
 			) (http.Handler, error) {
 				return server.NewGRPCHandler(cfg,
 					server.WithOTELStatsHandler(tp, mp),         // add opentelemetry stats handler
@@ -65,7 +66,7 @@ func main() {
 					server.WithValidatorInterceptor(),           // add validator interceptor
 					server.WithRegistrations(regs...),           // add registrations
 				)
-			}, fx.ParamTags(``, ``, ``, ``, ``, ``, grpc_server_fx_tag))),
+			}, grpc_handler_anns)),
 		fx.Invoke(data.SetDefaultIdWorker), // set default id worker
 		fx.Invoke( // register http server to lifecycle
 			func(srv *server.HTTPServer, lc fx.Lifecycle) {

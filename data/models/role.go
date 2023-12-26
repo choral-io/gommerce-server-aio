@@ -22,6 +22,9 @@ type Role struct {
 	DeletedAt   sql.NullTime   `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
 	Name        string         `json:"name" bun:"name"`
 	Description sql.NullString `json:"description" bun:"description"`
+
+	// Relations
+	Realm *Realm `bun:"rel:belongs-to,join:realm_id=id"`
 }
 
 func (m *Role) BeforeAppendModel(ctx context.Context, query bun.Query) error {

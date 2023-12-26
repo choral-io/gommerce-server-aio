@@ -48,7 +48,6 @@ func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 	if username, password, err := parseBasicAuth(value); err == nil {
 		client := &models.Client{}
 		if err := s.bdb.NewSelect().Model(client).
-			Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
 			Where(`secret_key = ?`, username).Scan(context.Background()); err != nil {
 			return nil, secure.ErrInvalidToken
 		}
@@ -64,7 +63,7 @@ func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 		if err := bcrypt.CompareHashAndPassword([]byte(client.SecretCode.String), []byte(password)); err != nil {
 			return nil, secure.ErrInvalidToken
 		}
-		return secure.NewToken("basic", client.Realm.Name, client.Id, client.Id, []string{}), nil
+		return secure.NewToken("basic", "server", client.Id, client.Id, []string{}), nil
 	}
 	return nil, secure.ErrInvalidToken
 }

@@ -63,7 +63,6 @@ INSERT INTO "users" VALUES ('030a67b921005000', '030a67b921005000', NULL, FALSE,
 -- clients definition
 CREATE TABLE "clients" (
     "id" VARCHAR(16) NOT NULL,
-    "realm_id" VARCHAR(16) NOT NULL,
     "disabled" BOOLEAN NOT NULL DEFAULT FALSE,
     "immutable" BOOLEAN NOT NULL DEFAULT FALSE,
     "created_at" TIMESTAMP(6) NOT NULL,
@@ -73,15 +72,14 @@ CREATE TABLE "clients" (
     "secret_key" VARCHAR(32) NOT NULL,
     "secret_code" VARCHAR(64) DEFAULT NULL,
     "description" VARCHAR(255) DEFAULT NULL,
-    CONSTRAINT "pk_clients" PRIMARY KEY ("id"),
-    CONSTRAINT "fk_clients_realms_realm_id" FOREIGN KEY ("realm_id") REFERENCES "realms" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
+    CONSTRAINT "pk_clients" PRIMARY KEY ("id")
 );
 
 CREATE UNIQUE INDEX "ix_clients_secret_key" ON "clients" ("secret_key");
 
 -- clients data
 
-INSERT INTO "clients" VALUES ('030a67b921005000', '030a67b921005000', FALSE, TRUE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, '030a67b921005000', NULL, NULL);
+INSERT INTO "clients" VALUES ('030a67b921005000', FALSE, TRUE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, '030a67b921005000', NULL, NULL);
 
 
 -- client_users definition
@@ -145,8 +143,7 @@ INSERT INTO "role_users" VALUES ('030a67b921005000', '030a67b921005000', TRUE, '
 
 CREATE TABLE "logins" (
     "id" VARCHAR(16) NOT NULL,
-    "realm_id" VARCHAR(16) NOT NULL,
-    "user_id" VARCHAR(16) DEFAULT NULL,
+    "user_id" VARCHAR(16) NOT NULL,
     "disabled" BOOLEAN NOT NULL DEFAULT FALSE,
     "immutable" BOOLEAN NOT NULL DEFAULT FALSE,
     "created_at" TIMESTAMP(6) NOT NULL,
@@ -158,15 +155,14 @@ CREATE TABLE "logins" (
     "credential" VARCHAR(64) DEFAULT NULL,
     "metadata" jsonb DEFAULT NULL,
     CONSTRAINT "pk_logins" PRIMARY KEY ("id"),
-    CONSTRAINT "fk_logins_realms_realm_id" FOREIGN KEY ("realm_id") REFERENCES "realms" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT "fk_logins_users_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-CREATE UNIQUE INDEX "ix_logins_realm_id_provider_identifier" ON "logins" ("realm_id", "provider", "identifier");
+CREATE UNIQUE INDEX "ix_logins_provider_identifier" ON "logins" ("provider", "identifier");
 
 -- logins data
 
-INSERT INTO "logins" VALUES ('030a67b921005000', '030a67b921005000', '030a67b921005000', FALSE, FALSE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, 'FORM_PASSWORD', 'admin', NULL, NULL);
+INSERT INTO "logins" VALUES ('030a67b921005000', '030a67b921005000', FALSE, FALSE, '2023-08-28 22:31:26.596', NULL, NULL, NULL, 'FORM_PASSWORD', 'admin', NULL, '{}');
 
 
 -- devices definition

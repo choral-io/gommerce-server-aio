@@ -75,7 +75,6 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		user.Attributes["profile.gender"] = user.Gender.String
 	}
 	login := &models.Login{
-		RealmId:    realm.Id,
 		Provider:   LOGIN_PROVIDER_FORM_PASSWORD,
 		Identifier: req.Username,
 		Metadata:   map[string]string{},
@@ -89,7 +88,7 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		if _, err := tx.NewInsert().Model(user).Exec(ctx); err != nil {
 			return status.Errorf(codes.Unknown, "error creating user: %v", err)
 		}
-		login.UserId = sql.NullString{Valid: true, String: user.Id}
+		login.UserId = user.Id
 		if _, err := tx.NewInsert().Model(login).Exec(ctx); err != nil {
 			return status.Errorf(codes.Unknown, "error creating login: %v", err)
 		}

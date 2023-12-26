@@ -19,14 +19,14 @@ require (
 	go.uber.org/fx v1.20.1
 	golang.org/x/crypto v0.17.0
 	google.golang.org/grpc v1.60.1
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.32.0
 )
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
 	github.com/expr-lang/expr v1.15.7 // indirect
-	github.com/go-logr/logr v1.4.0 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

@@ -14,7 +14,6 @@ type Client struct {
 
 	// Columns
 	Id          string         `json:"id" bun:"id,pk"`
-	RealmId     string         `json:"realm_id" bun:"realm_id"`
 	Disabled    bool           `json:"disabled" bun:"disabled"`
 	Immutable   bool           `json:"immutable" bun:"immutable"`
 	CreatedAt   time.Time      `json:"created_at" bun:"created_at"`
@@ -24,9 +23,6 @@ type Client struct {
 	SecretKey   string         `json:"secret_key" bun:"secret_key"`
 	SecretCode  sql.NullString `json:"_" bun:"secret_code"`
 	Description sql.NullString `json:"description" bun:"description"`
-
-	// Relations
-	Realm *Realm `bun:"rel:belongs-to,join:realm_id=id"`
 }
 
 func (m *Client) BeforeAppendModel(ctx context.Context, query bun.Query) error {

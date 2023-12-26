@@ -14,8 +14,7 @@ type Login struct {
 
 	// Columns
 	Id         string            `json:"id" bun:"id,pk"`
-	RealmId    string            `json:"realm_id" bun:"realm_id"`
-	UserId     sql.NullString    `json:"user_id" bun:"user_id"`
+	UserId     string            `json:"user_id" bun:"user_id"`
 	Disabled   bool              `json:"disabled" bun:"disabled"`
 	Immutable  bool              `json:"immutable" bun:"immutable"`
 	CreatedAt  time.Time         `json:"created_at" bun:"created_at"`
