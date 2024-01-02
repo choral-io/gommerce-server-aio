@@ -9,6 +9,11 @@ import (
 	"github.com/uptrace/bun"
 )
 
+const (
+	LOGIN_PROVIDER_FORM_PASSWORD = "FORM_PASSWORD"
+	LOGIN_PROVIDER_SMS_OTP_CODE  = "SMS_OTP_CODE"
+)
+
 type Login struct {
 	bun.BaseModel `bun:"table:logins,alias:login"`
 

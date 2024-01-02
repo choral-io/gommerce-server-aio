@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	REALM_FLAGS_ALLOW_REGISTRATION = 1 << 0
+	REALM_FLAGS_ALLOW_REGISTRATION int64 = 1 << 0
 )
 
 type Realm struct {

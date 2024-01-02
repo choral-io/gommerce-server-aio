@@ -11,8 +11,12 @@ require (
 	github.com/choral-io/gommerce-server-core v0.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1
-	github.com/redis/rueidis v1.0.25
+	github.com/joho/godotenv v1.5.1
+	github.com/redis/rueidis v1.0.26
 	github.com/uptrace/bun v1.1.16
+	github.com/uptrace/bun/dialect/mssqldialect v1.1.16
+	github.com/uptrace/bun/dialect/mysqldialect v1.1.16
+	github.com/uptrace/bun/dialect/pgdialect v1.1.16
 	github.com/uptrace/bun/driver/pgdriver v1.1.16
 	go.opentelemetry.io/otel/metric v1.21.0
 	go.opentelemetry.io/otel/trace v1.21.0
@@ -33,10 +37,8 @@ require (
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/rs/cors v1.10.1 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/uptrace/bun/dialect/mssqldialect v1.1.16 // indirect
-	github.com/uptrace/bun/dialect/mysqldialect v1.1.16 // indirect
-	github.com/uptrace/bun/dialect/pgdialect v1.1.16 // indirect
 	github.com/uptrace/bun/extra/bunotel v1.1.16 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.2.3 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect

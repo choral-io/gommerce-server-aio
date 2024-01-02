@@ -6,12 +6,16 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
-    "**/__debug_bin": true
+    "**/__debug_bin": true,
+    "**/node_modules": true,
   },
   "editor.formatOnSave": true,
   "editor.foldingStrategy": "indentation",
   "files.insertFinalNewline": true,
   "files.autoSave": "onWindowChange",
+  "files.associations": {
+    ".env.*": "properties"
+  },
   "go.testFlags": [
     "-v",
     "-count=1"

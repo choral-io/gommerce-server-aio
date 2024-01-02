@@ -50,7 +50,7 @@ func (s *usersServiceServer) Authorize(ctx context.Context, procedure string) er
 
 func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequest) (*iam.RegisterResponse, error) {
 	realm := &models.Realm{}
-	if err := s.bdb.NewSelect().Model(realm).Where("", req.Realm).Scan(ctx); err != nil {
+	if err := s.bdb.NewSelect().Model(realm).Where("name = ?", req.Realm).Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, status.Errorf(codes.InvalidArgument, "realm %s not found", req.Realm)
 		}
@@ -60,19 +60,25 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		return nil, status.Errorf(codes.PermissionDenied, "realm %s does not allow registration", req.Realm)
 	}
 	user := &models.User{
-		RealmId:     realm.Id,
-		Disabled:    false,
-		Approved:    true,
-		Verified:    true,
-		Attributes:  map[string]string{},
+		RealmId:    realm.Id,
+		Disabled:   false,
+		Approved:   true,
+		Verified:   true,
+		Attributes: map[string]string{},
+	}
+	profile := &models.Profile{
 		DisplayName: sqlpb.ToNullString(req.DisplayName),
+		AvatarUrl:   sqlpb.ToNullString(req.AvatarUrl),
 		Gender:      gender.ToSqlNullString(req.Gender),
 	}
-	if user.DisplayName.Valid {
-		user.Attributes["profile.display_name"] = user.DisplayName.String
+	if profile.DisplayName.Valid {
+		user.Attributes["profile.display_name"] = profile.DisplayName.String
 	}
-	if user.Gender.Valid {
-		user.Attributes["profile.gender"] = user.Gender.String
+	if profile.AvatarUrl.Valid {
+		user.Attributes["profile.avatar_url"] = profile.AvatarUrl.String
+	}
+	if profile.Gender.Valid {
+		user.Attributes["profile.gender"] = profile.Gender.String
 	}
 	login := &models.Login{
 		Provider:   LOGIN_PROVIDER_FORM_PASSWORD,
@@ -87,6 +93,10 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 	err := s.bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if _, err := tx.NewInsert().Model(user).Exec(ctx); err != nil {
 			return status.Errorf(codes.Unknown, "error creating user: %v", err)
+		}
+		profile.Id = user.Id
+		if _, err := tx.NewInsert().Model(profile).Exec(ctx); err != nil {
+			return status.Errorf(codes.Unknown, "error creating profile: %v", err)
 		}
 		login.UserId = user.Id
 		if _, err := tx.NewInsert().Model(login).Exec(ctx); err != nil {

@@ -1,0 +1,579 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_DATABASE_URL")
+}
+
+model Realm {
+  id          String    @id(map: "pk_realms") @db.VarChar(16)
+  disabled    Boolean   @default(false)
+  immutable   Boolean   @default(false)
+  createdAt   DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @map("updated_at") @db.Timestamp(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamp(6)
+  flags       BigInt
+  name        String    @unique(map: "ix_realms_name") @db.VarChar(64)
+  title       String    @db.VarChar(64)
+  description String?   @db.VarChar(255)
+  roles       Role[]
+  users       User[]
+
+  @@map("realms")
+}
+
+model User {
+  id             String       @id(map: "pk_users") @db.VarChar(16)
+  realmId        String       @map("realm_id") @db.VarChar(16)
+  creatorId      String?      @map("creator_id") @db.VarChar(16)
+  disabled       Boolean      @default(false)
+  approved       Boolean      @default(false)
+  verified       Boolean      @default(false)
+  immutable      Boolean      @default(false)
+  createdAt      DateTime     @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime?    @map("updated_at") @db.Timestamp(6)
+  deletedAt      DateTime?    @map("deleted_at") @db.Timestamp(6)
+  expiresAt      DateTime?    @map("expires_at") @db.Timestamp(6)
+  firstLoginTime DateTime?    @map("first_login_time") @db.Timestamp(6)
+  lastActiveTime DateTime?    @map("last_active_time") @db.Timestamp(6)
+  flags          BigInt
+  attributes     Json?
+  phoneNumber    String?      @map("phone_number") @db.VarChar(64)
+  emailAddress   String?      @map("email_address") @db.VarChar(128)
+  description    String?      @db.VarChar(255)
+  clientUsers    ClientUser[]
+  contacts       Contact[]
+  devices        Device[]
+  logins         Login[]
+  orders         Order[]
+  reviews        Review[]
+  roleUsers      RoleUser[]
+  subjects       Subject[]
+  userDevices    UserDevice[]
+  realm          Realm        @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_users_realms_realm_id")
+  creator        User?        @relation("user_creator", fields: [creatorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_users_creator_id")
+  createdUsers   User[]       @relation("user_creator")
+  Profile        Profile?
+
+  @@unique([realmId, emailAddress], map: "ix_users_realm_id_email_address")
+  @@unique([realmId, phoneNumber], map: "ix_users_realm_id_phone_number")
+  @@map("users")
+}
+
+model Profile {
+  id           String    @id(map: "pk_profiles") @db.VarChar(16)
+  createdAt    DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
+  displayName  String?   @map("display_name") @db.VarChar(64)
+  avatarUrl    String?   @map("avatar_url") @db.VarChar(2048)
+  gender       String?   @db.VarChar(32)
+  birthdate    DateTime? @db.Date
+  introduction String?   @db.VarChar(128)
+  user         User      @relation(fields: [id], references: [id], onUpdate: Restrict, map: "fk_profiles_users_id")
+
+  @@map("profiles")
+}
+
+model Client {
+  id          String       @id(map: "pk_clients") @db.VarChar(16)
+  disabled    Boolean      @default(false)
+  immutable   Boolean      @default(false)
+  createdAt   DateTime     @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime?    @map("updated_at") @db.Timestamp(6)
+  deletedAt   DateTime?    @map("deleted_at") @db.Timestamp(6)
+  expiresAt   DateTime?    @map("expires_at") @db.Timestamp(6)
+  secretKey   String       @unique(map: "ix_clients_secret_key") @map("secret_key") @db.VarChar(32)
+  secretCode  String?      @map("secret_code") @db.VarChar(64)
+  description String?      @db.VarChar(255)
+  clientUsers ClientUser[]
+  devices     Device[]
+
+  @@map("clients")
+}
+
+model ClientUser {
+  clientId  String    @map("client_id") @db.VarChar(16)
+  userId    String    @map("user_id") @db.VarChar(16)
+  immutable Boolean   @default(false)
+  createdAt DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  client    Client    @relation(fields: [clientId], references: [id], onUpdate: Restrict, map: "fk_client_users_clients_client_id")
+  user      User      @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_client_users_users_user_id")
+
+  @@id([clientId, userId], map: "pk_client_users")
+  @@map("client_users")
+}
+
+model Role {
+  id          String     @id(map: "pk_roles") @db.VarChar(16)
+  realmId     String     @map("realm_id") @db.VarChar(16)
+  disabled    Boolean    @default(false)
+  immutable   Boolean    @default(false)
+  createdAt   DateTime   @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime?  @map("updated_at") @db.Timestamp(6)
+  deletedAt   DateTime?  @map("deleted_at") @db.Timestamp(6)
+  name        String     @db.VarChar(64)
+  description String?    @db.VarChar(255)
+  roleUsers   RoleUser[]
+  realm       Realm      @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_roles_realms_realm_id")
+
+  @@unique([realmId, name], map: "ix_roles_realm_id_name")
+  @@map("roles")
+}
+
+model RoleUser {
+  roleId    String    @map("role_id") @db.VarChar(16)
+  userId    String    @map("user_id") @db.VarChar(16)
+  immutable Boolean   @default(false)
+  createdAt DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  role      Role      @relation(fields: [roleId], references: [id], onUpdate: Restrict, map: "fk_role_users_roles_role_id")
+  user      User      @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_role_users_users_user_id")
+
+  @@id([roleId, userId], map: "pk_role_users")
+  @@map("role_users")
+}
+
+model Login {
+  id         String    @id(map: "pk_logins") @db.VarChar(16)
+  userId     String    @map("user_id") @db.VarChar(16)
+  disabled   Boolean   @default(false)
+  immutable  Boolean   @default(false)
+  createdAt  DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime? @map("updated_at") @db.Timestamp(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamp(6)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(6)
+  provider   String    @db.VarChar(16)
+  identifier String    @db.VarChar(64)
+  credential String?   @db.VarChar(64)
+  metadata   Json?
+  user       User      @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_logins_users_user_id")
+
+  @@unique([provider, identifier], map: "ix_logins_provider_identifier")
+  @@map("logins")
+}
+
+model Device {
+  id          String       @id(map: "pk_devices") @db.VarChar(16)
+  userId      String?      @map("user_id") @db.VarChar(16)
+  clientId    String       @map("client_id") @db.VarChar(16)
+  createdAt   DateTime     @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime?    @map("updated_at") @db.Timestamp(6)
+  traceCode   String       @unique(map: "ix_devices_trace_code") @map("trace_code") @db.VarChar(64)
+  pushToken   String?      @map("push_token") @db.VarChar(128)
+  metadata    Json?
+  client      Client       @relation(fields: [clientId], references: [id], onUpdate: Restrict, map: "fk_devices_users_client_id")
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_devices_users_user_id")
+  userDevices UserDevice[]
+
+  @@map("devices")
+}
+
+model UserDevice {
+  userId    String    @map("user_id") @db.VarChar(16)
+  deviceId  String    @map("device_id") @db.VarChar(16)
+  createdAt DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  device    Device    @relation(fields: [deviceId], references: [id], onUpdate: Restrict, map: "fk_user_devices_devices_device_id")
+  user      User      @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_user_devices_users_user_id")
+
+  @@id([userId, deviceId], map: "pk_user_devices")
+  @@map("user_devices")
+}
+
+model Subject {
+  id            String    @id(map: "pk_subjects") @db.VarChar(16)
+  ownerId       String?   @map("owner_id") @db.VarChar(16)
+  disabled      Boolean   @default(false)
+  immutable     Boolean   @default(false)
+  createdAt     DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime  @map("updated_at") @db.Timestamp(6)
+  expiresAt     DateTime? @map("expires_at") @db.Timestamp(6)
+  commonName    String    @unique(map: "ix_subjects_common_name") @map("common_name") @db.VarChar(128)
+  shortName     String    @unique(map: "ix_subjects_short_name") @map("short_name") @db.VarChar(64)
+  licenseType   String    @map("license_type") @db.VarChar(32)
+  licenseCode   String?   @map("license_code") @db.VarChar(64)
+  accounts      Account[]
+  ownerPayments Payment[] @relation("payment_owner")
+  payerPayments Payment[] @relation("payment_payer")
+  payeePayments Payment[] @relation("payment_peyee")
+  shops         Shop[]
+  owner         User?     @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_subjects_users_owner_id")
+
+  @@index([ownerId], map: "ix_subjects_owner_id")
+  @@map("subjects")
+}
+
+model Account {
+  id             String         @id(map: "pk_accounts") @db.VarChar(16)
+  subjectId      String         @map("subject_id") @db.VarChar(16)
+  disabled       Boolean        @default(false)
+  immutable      Boolean        @default(false)
+  createdAt      DateTime       @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime       @map("updated_at") @db.Timestamp(6)
+  expiresAt      DateTime?      @map("expires_at") @db.Timestamp(6)
+  validTime      DateTime?      @map("valid_time") @db.Timestamp(6)
+  flags          BigInt
+  currency       String         @db.VarChar(32)
+  balance        Decimal?       @db.Decimal(16, 6)
+  accountEntries AccountEntry[]
+  subject        Subject        @relation(fields: [subjectId], references: [id], onUpdate: Restrict, map: "fk_accounts_subjects_subject_id")
+
+  @@index([subjectId], map: "ix_accounts_subject_id")
+  @@map("accounts")
+}
+
+model AccountEntry {
+  id        String   @id(map: "pk_account_entries") @db.VarChar(16)
+  accountId String   @map("account_id") @db.VarChar(16)
+  paymentId String   @map("payment_id") @db.VarChar(16)
+  createdAt DateTime @map("created_at") @db.Timestamp(6)
+  amount    Decimal  @db.Decimal(16, 6)
+  balance   Decimal  @db.Decimal(16, 6)
+  title     String   @db.VarChar(64)
+  comment   String   @db.VarChar(128)
+  signature String   @db.VarChar(128)
+  account   Account  @relation(fields: [accountId], references: [id], onUpdate: Restrict, map: "fk_account_entries_accounts_account_id")
+  payment   Payment  @relation(fields: [paymentId], references: [id], onUpdate: Restrict, map: "fk_account_entries_payments_payment_id")
+
+  @@index([accountId], map: "ix_account_entries_account_id")
+  @@index([paymentId], map: "ix_account_entries_payment_id")
+  @@map("account_entries")
+}
+
+model Payment {
+  id             String         @id(map: "pk_payments") @db.VarChar(16)
+  ownerId        String         @map("owner_id") @db.VarChar(16)
+  peyeeId        String         @map("peyee_id") @db.VarChar(16)
+  payerId        String?        @map("payer_id") @db.VarChar(16)
+  createdAt      DateTime       @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime       @map("updated_at") @db.Timestamp(6)
+  expiresAt      DateTime?      @map("expires_at") @db.Timestamp(6)
+  validTime      DateTime?      @map("valid_time") @db.Timestamp(6)
+  serialCode     String         @unique(map: "ix_payments_serial_code") @map("serial_code") @db.VarChar(128)
+  currency       String         @db.VarChar(32)
+  amount         Decimal        @db.Decimal(16, 6)
+  flags          BigInt
+  status         String         @db.VarChar(32)
+  title          String         @db.VarChar(64)
+  comment        String?        @db.VarChar(128)
+  accountEntries AccountEntry[]
+  orderPayments  OrderPayment[]
+  owner          Subject        @relation("payment_owner", fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_payments_subjects_owner_id")
+  payer          Subject?       @relation("payment_payer", fields: [payerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_payments_subjects_payer_id")
+  payee          Subject        @relation("payment_peyee", fields: [peyeeId], references: [id], onUpdate: Restrict, map: "fk_payments_subjects_peyee_id")
+
+  @@index([ownerId], map: "ix_payments_owner_id")
+  @@index([payerId], map: "ix_payments_payer_id")
+  @@index([peyeeId], map: "ix_payments_peyee_id")
+  @@map("payments")
+}
+
+model Region {
+  id          String      @id(map: "pk_regions") @db.VarChar(16)
+  parentId    String?     @map("parent_id") @db.VarChar(16)
+  disabled    Boolean     @default(false)
+  immutable   Boolean     @default(false)
+  createdAt   DateTime    @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime    @map("updated_at") @db.Timestamp(6)
+  commonCode  String      @unique(map: "ix_regions_common_code") @map("common_code") @db.VarChar(64)
+  commonName  String      @map("common_name") @db.VarChar(128)
+  summary     String?     @db.VarChar(255)
+  contacts    Contact[]
+  deliveries  Delivery[]
+  inventories Inventory[]
+  parent      Region?     @relation("region_parent", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_regions_regions_parent_id")
+  children    Region[]    @relation("region_parent")
+
+  @@unique([parentId, commonName], map: "ix_regions_parent_id_common_name")
+  @@map("regions")
+}
+
+model Catalog {
+  id          String    @id(map: "pk_catalogs") @db.VarChar(16)
+  parentId    String?   @map("parent_id") @db.VarChar(16)
+  disabled    Boolean   @default(false)
+  immutable   Boolean   @default(false)
+  createdAt   DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @map("updated_at") @db.Timestamp(6)
+  name        String    @db.VarChar(64)
+  title       String    @db.VarChar(64)
+  description String?   @db.VarChar(255)
+  template    Json
+  parent      Catalog?  @relation("catalog_parent", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_catalogs_catalogs_parent_id")
+  children    Catalog[] @relation("catalog_parent")
+  products    Product[]
+
+  @@unique([parentId, name], map: "ix_catalogs_parent_id_name")
+  @@map("catalogs")
+}
+
+model Shop {
+  id         String    @id(map: "pk_shops") @db.VarChar(16)
+  subjectId  String    @map("subject_id") @db.VarChar(16)
+  disabled   Boolean   @default(false)
+  immutable  Boolean   @default(false)
+  createdAt  DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime  @map("updated_at") @db.Timestamp(6)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(6)
+  validTime  DateTime? @map("valid_time") @db.Timestamp(6)
+  commonName String    @unique(map: "ix_shops_common_name") @map("common_name") @db.VarChar(128)
+  shortName  String?   @unique(map: "ix_shops_short_name") @map("short_name") @db.VarChar(64)
+  orders     Order[]
+  products   Product[]
+  subject    Subject   @relation(fields: [subjectId], references: [id], onUpdate: Restrict, map: "fk_shops_subjects_subject_id")
+
+  @@index([subjectId], map: "ix_shops_subject_id")
+  @@map("shops")
+}
+
+model Product {
+  id               String            @id(map: "pk_products") @db.VarChar(16)
+  catalogId        String            @map("catalog_id") @db.VarChar(16)
+  shopId           String            @map("shop_id") @db.VarChar(16)
+  disabled         Boolean           @default(false)
+  createdAt        DateTime          @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime          @map("updated_at") @db.Timestamp(6)
+  expiresAt        DateTime?         @map("expires_at") @db.Timestamp(6)
+  validTime        DateTime?         @map("valid_time") @db.Timestamp(6)
+  name             String            @db.VarChar(64)
+  title            String            @db.VarChar(64)
+  description      String?           @db.VarChar(255)
+  template         Json
+  categoryProducts CategoryProduct[]
+  productSkus      ProductSku[]
+  catalog          Catalog           @relation(fields: [catalogId], references: [id], onUpdate: Restrict, map: "fk_products_catalogs_catalog_id")
+  shop             Shop              @relation(fields: [shopId], references: [id], onUpdate: Restrict, map: "fk_products_shops_shop_id")
+
+  @@unique([shopId, name], map: "ix_products_shop_id_name")
+  @@index([catalogId], map: "ix_products_catalog_id")
+  @@map("products")
+}
+
+model ProductSku {
+  id          String      @id(map: "pk_product_skus") @db.VarChar(16)
+  productId   String      @map("product_id") @db.VarChar(16)
+  disabled    Boolean     @default(false)
+  createdAt   DateTime    @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime    @map("updated_at") @db.Timestamp(6)
+  expiresAt   DateTime?   @map("expires_at") @db.Timestamp(6)
+  validTime   DateTime?   @map("valid_time") @db.Timestamp(6)
+  name        String      @db.VarChar(64)
+  title       String      @db.VarChar(64)
+  description String?     @db.VarChar(255)
+  template    Json
+  inventories Inventory[]
+  orderItems  OrderItem[]
+  prices      Price[]
+  product     Product     @relation(fields: [productId], references: [id], onUpdate: Restrict, map: "fk_product_skus_products_product_id")
+  reviews     Review[]
+
+  @@unique([productId, name], map: "ix_product_skus_product_id_name")
+  @@map("product_skus")
+}
+
+model Category {
+  id               String            @id(map: "pk_categories") @db.VarChar(16)
+  parentId         String?           @map("parent_id") @db.VarChar(16)
+  disabled         Boolean           @default(false)
+  immutable        Boolean           @default(false)
+  createdAt        DateTime          @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime          @map("updated_at") @db.Timestamp(6)
+  name             String            @db.VarChar(64)
+  title            String            @db.VarChar(64)
+  description      String?           @db.VarChar(255)
+  template         Json
+  parent           Category?         @relation("category_parent", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_categories_categories_parent_id")
+  children         Category[]        @relation("category_parent")
+  categoryProducts CategoryProduct[]
+
+  @@unique([parentId, title], map: "ix_categories_parent_id_title")
+  @@map("categories")
+}
+
+model CategoryProduct {
+  productId  String   @map("product_id") @db.VarChar(16)
+  categoryId String   @map("category_id") @db.VarChar(16)
+  disabled   Boolean  @default(false)
+  createdAt  DateTime @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime @map("updated_at") @db.Timestamp(6)
+  category   Category @relation(fields: [categoryId], references: [id], onUpdate: Restrict, map: "fk_category_products_categories_category_id")
+  product    Product  @relation(fields: [productId], references: [id], onUpdate: Restrict, map: "fk_category_products_products_product_id")
+
+  @@id([categoryId, productId], map: "pk_category_products")
+  @@index([categoryId], map: "ix_category_products_category_id")
+  @@index([productId], map: "ix_category_products_product_id")
+  @@map("category_products")
+}
+
+model Contact {
+  id           String   @id(map: "pk_contacts") @db.VarChar(16)
+  ownerId      String   @map("owner_id") @db.VarChar(16)
+  regionId     String   @map("region_id") @db.VarChar(16)
+  disabled     Boolean  @default(false)
+  createdAt    DateTime @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime @map("updated_at") @db.Timestamp(6)
+  preferred    Boolean  @default(false)
+  summary      String   @db.VarChar(255)
+  address      String   @db.VarChar(255)
+  postCode     String?  @map("post_code") @db.VarChar(32)
+  fullName     String   @map("full_name") @db.VarChar(128)
+  emailAddress String?  @map("email_address") @db.VarChar(128)
+  phoneNumber  String?  @map("phone_number") @db.VarChar(128)
+  region       Region   @relation(fields: [regionId], references: [id], onUpdate: Restrict, map: "fk_contacts_regions_region_id")
+  user         User     @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_contacts_users_owner_id")
+  orders       Order[]
+
+  @@index([ownerId], map: "ix_contacts_owner_id")
+  @@index([regionId], map: "ix_contacts_region_id")
+  @@map("contacts")
+}
+
+model Order {
+  id            String         @id(map: "pk_orders") @db.VarChar(16)
+  shopId        String         @map("shop_id") @db.VarChar(16)
+  ownerId       String         @map("owner_id") @db.VarChar(16)
+  contactId     String?        @map("contact_id") @db.VarChar(16)
+  createdAt     DateTime       @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime       @map("updated_at") @db.Timestamp(6)
+  expiresAt     DateTime?      @map("expires_at") @db.Timestamp(6)
+  status        String         @db.VarChar(32)
+  currency      String         @db.VarChar(32)
+  totalAmount   Decimal        @map("total_amount") @db.Decimal(16, 6)
+  serialCode    String         @unique(map: "ix_orders_serial_code") @map("serial_code") @db.VarChar(64)
+  comment       String?        @db.VarChar(128)
+  snapshot      Json
+  orderItems    OrderItem[]
+  orderPayments OrderPayment[]
+  contact       Contact?       @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_orders_contacts_contact_id")
+  shop          Shop           @relation(fields: [shopId], references: [id], onUpdate: Restrict, map: "fk_orders_shops_shop_id")
+  user          User           @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_orders_users_owner_id")
+
+  @@index([contactId], map: "ix_orders_contact_id")
+  @@index([ownerId], map: "ix_orders_owner_id")
+  @@index([shopId], map: "ix_orders_shop_id")
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String     @id(map: "pk_order_items") @db.VarChar(16)
+  orderId      String     @map("order_id") @db.VarChar(16)
+  productSkuId String     @map("product_sku_id") @db.VarChar(16)
+  deliveryId   String?    @map("delivery_id") @db.VarChar(16)
+  disabled     Boolean    @default(false)
+  createdAt    DateTime   @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime   @map("updated_at") @db.Timestamp(6)
+  quantity     Int
+  currency     String     @db.VarChar(32)
+  unitAmount   Decimal    @map("unit_amount") @db.Decimal(16, 6)
+  comment      String?    @db.VarChar(128)
+  delivery     Delivery?  @relation(fields: [deliveryId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_order_items_deliveries_delivery_id")
+  order        Order      @relation(fields: [orderId], references: [id], onUpdate: Restrict, map: "fk_order_items_orders_order_id")
+  productSku   ProductSku @relation(fields: [productSkuId], references: [id], onUpdate: Restrict, map: "fk_order_items_product_skus_product_sku_id")
+
+  @@index([deliveryId], map: "ix_order_items_delivery_id")
+  @@index([orderId], map: "ix_order_items_order_id")
+  @@index([productSkuId], map: "ix_order_items_product_sku_id")
+  @@map("order_items")
+}
+
+model OrderPayment {
+  id        String    @id(map: "pk_order_payments") @db.VarChar(16)
+  orderId   String    @map("order_id") @db.VarChar(16)
+  paymentId String    @map("payment_id") @db.VarChar(16)
+  createdAt DateTime  @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @map("updated_at") @db.Timestamp(6)
+  expiresAt DateTime? @map("expires_at") @db.Timestamp(6)
+  amount    Decimal   @db.Decimal(16, 6)
+  status    String    @db.VarChar(32)
+  order     Order     @relation(fields: [orderId], references: [id], onUpdate: Restrict, map: "fk_order_payments_orders_order_id")
+  payment   Payment   @relation(fields: [paymentId], references: [id], onUpdate: Restrict, map: "fk_order_payments_payments_payment_id")
+
+  @@index([orderId], map: "ix_order_payments_order_id")
+  @@index([paymentId], map: "ix_order_payments_payment_id")
+  @@map("order_payments")
+}
+
+model Delivery {
+  id           String      @id(map: "pk_deliveries") @db.VarChar(16)
+  regionId     String      @map("region_id") @db.VarChar(16)
+  createdAt    DateTime    @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime    @map("updated_at") @db.Timestamp(6)
+  status       String      @db.VarChar(32)
+  summary      String      @db.VarChar(255)
+  address      String      @db.VarChar(255)
+  fullName     String      @map("full_name") @db.VarChar(128)
+  emailAddress String?     @map("email_address") @db.VarChar(128)
+  phoneNumber  String?     @map("phone_number") @db.VarChar(128)
+  providerCode String?     @map("provider_code") @db.VarChar(64)
+  trackingCode String?     @map("tracking_code") @db.VarChar(128)
+  regions      Region      @relation(fields: [regionId], references: [id], onUpdate: Restrict, map: "fk_deliveries_regions_region_id")
+  orderItem    OrderItem[]
+
+  @@index([providerCode, trackingCode], map: "ix_deliveries_provider_code_tracking_code")
+  @@index([regionId], map: "ix_deliveries_region_id")
+  @@map("deliveries")
+}
+
+model Inventory {
+  id             String     @id(map: "pk_inventories") @db.VarChar(16)
+  region_id      String?    @db.VarChar(16)
+  product_sku_id String     @db.VarChar(16)
+  disabled       Boolean    @default(false)
+  created_at     DateTime   @db.Timestamp(6)
+  updated_at     DateTime   @db.Timestamp(6)
+  expires_at     DateTime?  @db.Timestamp(6)
+  valid_time     DateTime?  @db.Timestamp(6)
+  weight         Int
+  quantity       Int
+  comment        String?    @db.VarChar(128)
+  product_skus   ProductSku @relation(fields: [product_sku_id], references: [id], onUpdate: Restrict, map: "fk_inventories_product_skus_product_sku_id")
+  regions        Region?    @relation(fields: [region_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_inventories_regions_region_id")
+
+  @@index([product_sku_id], map: "ix_inventories_product_sku_id")
+  @@index([region_id], map: "ix_inventories_region_id")
+  @@map("inventories")
+}
+
+model Price {
+  id           String     @id(map: "pk_prices") @db.VarChar(16)
+  productSkuId String     @map("product_sku_id") @db.VarChar(16)
+  disabled     Boolean    @default(false)
+  obsolete     Boolean    @default(false)
+  createdAt    DateTime   @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime   @map("updated_at") @db.Timestamp(6)
+  expiresAt    DateTime?  @map("expires_at") @db.Timestamp(6)
+  validTime    DateTime?  @map("valid_time") @db.Timestamp(6)
+  weight       Int
+  currency     String     @db.VarChar(32)
+  amount       Decimal    @db.Decimal(16, 6)
+  comment      String?    @db.VarChar(128)
+  productSku   ProductSku @relation(fields: [productSkuId], references: [id], onUpdate: Restrict, map: "fk_prices_product_skus_product_sku_id")
+
+  @@index([productSkuId], map: "ix_prices_product_sku_id")
+  @@map("prices")
+}
+
+model Review {
+  id           String     @id(map: "pk_reviews") @db.VarChar(16)
+  productSkuId String     @map("product_sku_id") @db.VarChar(16)
+  authorId     String     @map("author_id") @db.VarChar(16)
+  disabled     Boolean    @default(false)
+  isAnonymous  Boolean    @default(false) @map("is_anonymous")
+  createdAt    DateTime   @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime   @map("updated_at") @db.Timestamp(6)
+  title        String?    @db.VarChar(64)
+  comment      String?    @db.VarChar(255)
+  rating       Int        @db.SmallInt
+  productSku   ProductSku @relation(fields: [productSkuId], references: [id], onUpdate: Restrict, map: "fk_reviews_product_skus_product_sku_id")
+  author       User       @relation(fields: [authorId], references: [id], onUpdate: Restrict, map: "fk_reviews_users_author_id")
+
+  @@index([authorId], map: "ix_reviews_author_id")
+  @@index([productSkuId], map: "ix_reviews_product_sku_id")
+  @@map("reviews")
+}

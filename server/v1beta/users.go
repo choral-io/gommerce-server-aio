@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	iam "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
-	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-core/secure"
@@ -28,8 +27,6 @@ func toUserPB(u models.User) *iam.User {
 		LastActiveTime:     sqlpb.FromNullTime(u.LastActiveTime),
 		Flags:              u.Flags,
 		Attributes:         u.Attributes,
-		DisplayName:        sqlpb.FromNullString(u.DisplayName),
-		Gender:             gender.FromSqlNullString(u.Gender),
 		MaskedPhoneNumber:  sqlpb.FromNullString(sql.NullString{Valid: u.PhoneNumber.Valid, String: secure.MaskString(u.PhoneNumber.String)}),
 		MaskedEmailAddress: sqlpb.FromNullString(sql.NullString{Valid: u.EmailAddress.Valid, String: secure.MaskString(u.EmailAddress.String)}),
 		Description:        sqlpb.FromNullString(u.Description),
