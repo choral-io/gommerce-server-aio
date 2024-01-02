@@ -48,6 +48,7 @@ model User {
   devices        Device[]
   logins         Login[]
   orders         Order[]
+  Profile        Profile?
   reviews        Review[]
   roleUsers      RoleUser[]
   subjects       Subject[]
@@ -55,7 +56,6 @@ model User {
   realm          Realm        @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_users_realms_realm_id")
   creator        User?        @relation("user_creator", fields: [creatorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_users_creator_id")
   createdUsers   User[]       @relation("user_creator")
-  Profile        Profile?
 
   @@unique([realmId, emailAddress], map: "ix_users_realm_id_email_address")
   @@unique([realmId, phoneNumber], map: "ix_users_realm_id_phone_number")

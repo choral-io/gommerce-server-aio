@@ -20,6 +20,7 @@ import (
 	srv "github.com/choral-io/gommerce-server-aio/server"
 	srv_v1 "github.com/choral-io/gommerce-server-aio/server/v1"
 	srv_v1b "github.com/choral-io/gommerce-server-aio/server/v1beta"
+	"github.com/choral-io/gommerce-server-aio/static"
 )
 
 var (
@@ -44,7 +45,6 @@ func main() {
 		fx.Provide(server.NewHTTPServer),                          // create http server
 		fx.Provide( // register grpc servers
 			fx.Annotate(server.NewHealthServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1.NewStaticFilesServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1.NewPasswordServiceServer, grpc_servers_anns...),
@@ -58,6 +58,7 @@ func main() {
 				logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
 				auth *secure.ServerAuthorizer, matcher selector.Matcher,
 			) (http.Handler, error) {
+				fs := http.FS(static.GetStaticFS())
 				return server.NewGRPCHandler(cfg,
 					server.WithOTELStatsHandler(tp, mp),         // add opentelemetry stats handler
 					server.WithLoggingInterceptor(logger),       // add logging interceptor
@@ -65,6 +66,7 @@ func main() {
 					server.WithSecureInterceptor(auth, matcher), // add secure interceptor
 					server.WithValidatorInterceptor(),           // add validator interceptor
 					server.WithRegistrations(regs...),           // add registrations
+					server.WithStaticFileHandler("/**", fs),     // add static file handler
 				)
 			}, grpc_handler_anns)),
 		fx.Invoke(data.SetDefaultIdWorker), // set default id worker
