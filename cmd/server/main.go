@@ -1,15 +1,19 @@
 package main
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/data"
+	"github.com/choral-io/gommerce-server-core/events"
 	"github.com/choral-io/gommerce-server-core/logging"
 	"github.com/choral-io/gommerce-server-core/otel"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/server"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+	"github.com/nats-io/nats.go"
+	"github.com/uptrace/bun"
 
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -37,12 +41,13 @@ func main() {
 		fx.Provide(otel.NewTracerProvider),                        // create tracer provider for opentelemetry
 		fx.Provide(otel.NewMeterProvider),                         // create meter provider for opentelemetry
 		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // create redis client and redis seq
-		fx.Provide(data.NewBunDB),                                 // create bun db
 		fx.Provide(data.NewIdWorker),                              // create id worker
+		fx.Provide(data.NewBunDB),                                 // create bun db
 		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // create token stores
 		fx.Provide(srv.NewServerAuthorizer),                       // create server authorizer
 		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
 		fx.Provide(server.NewHTTPServer),                          // create http server
+		fx.Provide(events.NewNATSConn),                            // create nats connection
 		fx.Provide( // register grpc servers
 			fx.Annotate(server.NewHealthServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_servers_anns...),
@@ -70,9 +75,21 @@ func main() {
 				)
 			}, grpc_handler_anns)),
 		fx.Invoke(data.SetDefaultIdWorker), // set default id worker
+		fx.Invoke( // register db connection to lifecycle
+			func(bdb bun.IDB, lc fx.Lifecycle) {
+				lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
+					return bdb.NewSelect().DB().Close()
+				}})
+			}),
+		fx.Invoke( // register nats connection to lifecycle
+			func(nc *nats.Conn, lc fx.Lifecycle) {
+				lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
+					return nc.Drain()
+				}})
+			}),
 		fx.Invoke( // register http server to lifecycle
 			func(srv *server.HTTPServer, lc fx.Lifecycle) {
-				lc.Append(fx.Hook{OnStart: srv.Start, OnStop: srv.Stop}) // register http server to lifecycle
+				lc.Append(fx.Hook{OnStart: srv.Start, OnStop: srv.Stop})
 			}),
 		fx.WithLogger( // create logger for fx
 			func(l logging.Logger) fxevent.Logger {
