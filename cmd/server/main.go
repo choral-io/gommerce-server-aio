@@ -35,7 +35,7 @@ var (
 
 func main() {
 	fx.New(
-		fx.Provide(config.LoadRootConfig, config.ExtractSections), // load and extract config sections
+		fx.Provide(config.LoadYamlConfig, config.ExtractSections), // load and extract config sections
 		fx.Provide(logging.NewLogger),                             // create logger
 		fx.Provide(otel.NewServerResource),                        // create server resource for opentelemetry
 		fx.Provide(otel.NewTracerProvider),                        // create tracer provider for opentelemetry
