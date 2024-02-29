@@ -37,6 +37,7 @@ func (p *FormPasswordLoginProvider) Login(ctx context.Context, realmId, username
 	if err := p.bdb.NewSelect().Model(&login).
 		Where(`"login"."provider" = ?`, LOGIN_PROVIDER_FORM_PASSWORD).
 		Where(`"login"."identifier" = ?`, username).
+		Where(`"user"."realm_id" = ?`, realmId).
 		Relation("User").Scan(ctx); err != nil {
 		return nil, err
 	}

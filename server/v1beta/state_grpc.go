@@ -46,23 +46,23 @@ func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state.GetSt
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
 	key := fmt.Sprintf(STORAGE_KEY_TEMPLATE, sub, req.GetKey())
 	cmd := s.rdb.B().Get().Key(key)
-	data, err := s.rdb.Do(ctx, cmd.Build()).ToString()
+	data, err := s.rdb.Do(ctx, cmd.Build()).AsBytes()
 	if err != nil && err != rueidis.Nil {
 		return nil, err
 	}
 	return &state.GetStateResponse{
-		Data: []byte(data),
+		Data: data,
 	}, nil
 }
 
 func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state.SetStateRequest) (*state.SetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
 	key := fmt.Sprintf(STORAGE_KEY_TEMPLATE, sub, req.GetKey())
-	cmd := s.rdb.B().Set().Key(key).Value(string(req.GetData()))
+	cmd := s.rdb.B().Set().Key(key).Value(rueidis.BinaryString(req.GetData()))
 	if val, ok := req.Metadata[TTL_IN_SECONDS_KEY]; ok {
 		ttl, err := strconv.ParseInt(val, 10, 0)
 		if err != nil {
-			return nil, validator.NewErrorWithCause("metadata.ttlInSeconds", "metadata.ttlInSeconds must be an integer", err)
+			return nil, validator.NewErrorWithCause("metadata."+TTL_IN_SECONDS_KEY, "metadata.ttlInSeconds must be an integer", err)
 		}
 		cmd.ExSeconds(ttl)
 	}

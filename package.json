@@ -4,10 +4,12 @@
   "scripts": {
     "db:pull": "prisma db pull",
     "db:push": "prisma db push --skip-generate",
+    "db:sync": "pnpm run db:pull && pnpm run db:push",
     "db:seed": "go run ./cmd/dbseed/",
-    "db:init": "npm run db:push && npm run db:seed"
+    "db:init": "pnpm run db:push && pnpm run db:seed",
+    "db:studio": "prisma studio --port 5555"
   },
   "devDependencies": {
-    "prisma": "5.7.1"
+    "prisma": "5.10.2"
   }
 }

@@ -124,7 +124,7 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	}
 	scope := make([]string, len(roles))
 	for i, r := range roles {
-		scope[i] = "ROLE_" + r
+		scope[i] = "ROLE_" + strings.ToUpper(r)
 	}
 	uat, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_BEARER, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetAccessTokenTTL())
 	if err != nil {

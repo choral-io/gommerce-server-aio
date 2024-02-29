@@ -101,7 +101,7 @@ func seed(ctx context.Context) error {
 			RealmId:     adminRealm.Id,
 			Immutable:   true,
 			Name:        "Admin",
-			Description: sql.NullString{Valid: true, String: "Initial built-in admin role."},
+			Description: sql.NullString{Valid: true, String: "Built-in admin role."},
 		}
 		if _, err := tx.NewInsert().Model(&adminRole).Exec(ctx); err != nil {
 			return err
@@ -116,7 +116,7 @@ func seed(ctx context.Context) error {
 			Attributes: map[string]string{
 				"profile.display_name": "Admin",
 			},
-			Description: sql.NullString{Valid: true, String: "Initial built-in admin user."},
+			Description: sql.NullString{Valid: true, String: "Built-in admin user."},
 		}
 		if _, err := tx.NewInsert().Model(&adminUser).Exec(ctx); err != nil {
 			return err
