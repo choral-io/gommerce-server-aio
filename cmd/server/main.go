@@ -63,15 +63,14 @@ func main() {
 				logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
 				auth *secure.ServerAuthorizer, matcher selector.Matcher,
 			) (http.Handler, error) {
-				fs := http.FS(static.GetStaticFS())
 				return server.NewGRPCHandler(cfg,
-					server.WithOTELStatsHandler(tp, mp),         // add opentelemetry stats handler
-					server.WithLoggingInterceptor(logger),       // add logging interceptor
-					server.WithRecoveryInterceptor(nil),         // add recovery interceptor
-					server.WithSecureInterceptor(auth, matcher), // add secure interceptor
-					server.WithValidatorInterceptor(),           // add validator interceptor
-					server.WithRegistrations(regs...),           // add registrations
-					server.WithStaticFileHandler("/**", fs),     // add static file handler
+					server.WithOTELStatsHandler(tp, mp),              // add opentelemetry stats handler
+					server.WithLoggingInterceptor(logger),            // add logging interceptor
+					server.WithRecoveryInterceptor(nil),              // add recovery interceptor
+					server.WithSecureInterceptor(auth, matcher),      // add secure interceptor
+					server.WithValidatorInterceptor(),                // add validator interceptor
+					server.WithRegistrations(regs...),                // add registrations
+					server.WithStaticFileHandler("/**", static.FS()), // add static file handler
 				)
 			}, grpc_handler_anns)),
 		fx.Invoke(data.SetDefaultIdWorker), // set default id worker

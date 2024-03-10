@@ -7,8 +7,8 @@ import (
 
 //go:embed *
 //go:embed assets
-var staticFS embed.FS
+var efs embed.FS
 
-func GetStaticFS() fs.FS {
-	return staticFS
+func FS() fs.FS {
+	return efs
 }
