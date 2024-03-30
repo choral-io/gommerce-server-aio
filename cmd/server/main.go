@@ -92,7 +92,7 @@ func main() {
 			}),
 		fx.WithLogger( // create logger for fx
 			func(l logging.Logger) fxevent.Logger {
-				return logging.NewFxeventLogger(l).UseEventLevel(logging.LevelDebug)
+				return logging.NewFxeventLogger(l, logging.LevelInfo, logging.LevelError)
 			}),
 	).Run()
 }

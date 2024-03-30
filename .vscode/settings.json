@@ -9,18 +9,18 @@
     "**/__debug_bin": true,
     "**/node_modules": true
   },
-  "editor.formatOnSave": true,
-  "editor.foldingStrategy": "indentation",
-  "files.insertFinalNewline": true,
-  "files.autoSave": "onWindowChange",
   "files.associations": {
     ".env.*": "properties"
   },
+  "files.insertFinalNewline": true,
+  "files.autoSave": "onWindowChange",
+  "editor.formatOnSave": true,
+  "editor.foldingStrategy": "indentation",
   "go.testFlags": [
     "-v",
     "-count=1"
   ],
   "go.testEnvVars": {
-    "GOMMERCE_CONFIG_PATH": "${workspaceFolder}/config/example.yaml"
+    "GSCC_CONFIG_PATH": "${workspaceFolder}/config/example.yaml"
   }
 }

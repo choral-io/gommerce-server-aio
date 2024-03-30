@@ -5,8 +5,8 @@ import (
 	"io/fs"
 )
 
-//go:embed *
-//go:embed assets
+//go:embed index.html
+//go:embed assets/**
 var efs embed.FS
 
 func FS() fs.FS {

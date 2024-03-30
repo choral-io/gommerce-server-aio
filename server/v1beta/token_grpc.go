@@ -34,13 +34,13 @@ func (p *FormPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error 
 type tokensServiceServer struct {
 	iam.UnimplementedTokensServiceServer
 
-	cfg config.TokenConfig
+	cfg config.SecureTokenConfig
 	bdb bun.IDB
 	ts  secure.TokenStore
 	lps map[string]LoginProvider
 }
 
-func NewTokensServiceServer(cfg config.TokenConfig, bdb bun.IDB, ts secure.TokenStore) iam.TokensServiceServer {
+func NewTokensServiceServer(cfg config.SecureTokenConfig, bdb bun.IDB, ts secure.TokenStore) iam.TokensServiceServer {
 	s := &tokensServiceServer{
 		cfg: cfg,
 		bdb: bdb,

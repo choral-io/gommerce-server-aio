@@ -9,7 +9,7 @@
       "program": "${workspaceFolder}/cmd/server",
       "cwd": "${workspaceFolder}",
       "env": {
-        "GOMMERCE_CONFIG_PATH": "${workspaceFolder}/config/app-local.yaml"
+        "GSCC_CONFIG_PATH": "${workspaceFolder}/config/app-local.yaml"
       }
     }
   ]
