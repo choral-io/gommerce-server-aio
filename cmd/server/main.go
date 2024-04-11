@@ -30,7 +30,7 @@ import (
 var (
 	grpc_server_fx_tag = `group:"grpc_servers"`
 	grpc_servers_anns  = []fx.Annotation{fx.As(new(any)), fx.ResultTags(grpc_server_fx_tag)}
-	grpc_handler_anns  = fx.ParamTags(``, grpc_server_fx_tag, ``, ``, ``, ``, ``)
+	grpc_handler_anns  = fx.ParamTags(grpc_server_fx_tag)
 )
 
 func main() {
@@ -48,6 +48,7 @@ func main() {
 		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
 		fx.Provide(server.NewHTTPServer),                          // create http server
 		fx.Provide(events.NewNATSConn),                            // create nats connection
+		fx.Provide(srv_v1b.NewObjectStoreService),                 // create object store service
 		fx.Provide( // register grpc servers
 			fx.Annotate(server.NewHealthServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_servers_anns...),
@@ -59,18 +60,19 @@ func main() {
 			fx.Annotate(srv_v1b.NewStateStoreServiceServer, grpc_servers_anns...),
 		),
 		fx.Provide( // create grpc handler
-			fx.Annotate(func(cfg config.ServerHTTPConfig, regs []any,
+			fx.Annotate(func(regs []any, cfg config.ServerHTTPConfig,
 				logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
-				auth *secure.ServerAuthorizer, matcher selector.Matcher,
+				auth *secure.ServerAuthorizer, matcher selector.Matcher, oss *srv_v1b.ObjectStoreService,
 			) (http.Handler, error) {
 				return server.NewGRPCHandler(cfg,
-					server.WithOTELStatsHandler(tp, mp),              // add opentelemetry stats handler
-					server.WithLoggingInterceptor(logger),            // add logging interceptor
-					server.WithRecoveryInterceptor(nil),              // add recovery interceptor
-					server.WithSecureInterceptor(auth, matcher),      // add secure interceptor
-					server.WithValidatorInterceptor(),                // add validator interceptor
-					server.WithRegistrations(regs...),                // add registrations
-					server.WithStaticFileHandler("/**", static.FS()), // add static file handler
+					server.WithOTELStatsHandler(tp, mp),                 // add opentelemetry stats handler
+					server.WithLoggingInterceptor(logger),               // add logging interceptor
+					server.WithRecoveryInterceptor(nil),                 // add recovery interceptor
+					server.WithSecureInterceptor(auth, matcher),         // add secure interceptor
+					server.WithValidatorInterceptor(),                   // add validator interceptor
+					server.WithRegistrations(regs...),                   // add registrations
+					server.WithServeMuxRoutes(oss.ServerMuxRoutes()...), // add mux handler func
+					server.WithStaticFileHandler("/**", static.FS()),    // add static file handler
 				)
 			}, grpc_handler_anns)),
 		fx.Invoke(data.SetDefaultIdWorker), // set default id worker

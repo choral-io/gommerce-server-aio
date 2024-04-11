@@ -108,12 +108,12 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		return nil, err
 	}
 	return &iam.RegisterResponse{
-		User: toUserPB(*user),
+		User: toUserPB(user),
 	}, nil
 }
 
 func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRequest) (*iam.ListUsersResponse, error) {
-	var users []models.User
+	var users []*models.User
 	query := s.bdb.NewSelect().Model(&users)
 	total, err := query.Apply(data.WithPaging(req)).
 		Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
@@ -136,10 +136,10 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 }
 
 func (s *usersServiceServer) GetIdentity(ctx context.Context, req *iam.GetIdentityRequest) (*iam.GetIdentityResponse, error) {
-	user := models.User{
+	user := &models.User{
 		Id: secure.IdentityFromContext(ctx).Token().Subject(),
 	}
-	err := s.bdb.NewSelect().Model(&user).WherePK().
+	err := s.bdb.NewSelect().Model(user).WherePK().
 		Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
 		Scan(ctx)
 	if err != nil {

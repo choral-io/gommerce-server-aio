@@ -10,9 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func toUserPB(u models.User) *iam.User {
-	// mask sensitive data
-	// convert to proto
+func toUserPB(u *models.User) *iam.User {
 	r := &iam.User{
 		Id:                 u.Id,
 		Disabled:           u.Disabled,
@@ -35,7 +33,7 @@ func toUserPB(u models.User) *iam.User {
 		r.Realm = u.Realm.Name
 	}
 	if u.Creator != nil {
-		r.Creator = toUserPB(*u.Creator)
+		r.Creator = toUserPB(u.Creator)
 	}
 	return r
 }
