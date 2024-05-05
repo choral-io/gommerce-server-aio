@@ -30,7 +30,9 @@ type Role struct {
 func (m *Role) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
-		m.Id = data.DefaultIdWorker().NextHex()
+		if m.Id == "" {
+			m.Id = data.DefaultIdWorker().NextHex()
+		}
 		m.Immutable = false
 		m.CreatedAt = time.Now()
 		m.UpdatedAt = sql.NullTime{Valid: false}

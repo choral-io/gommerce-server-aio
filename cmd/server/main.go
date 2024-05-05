@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/data"
@@ -12,6 +14,7 @@ import (
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/server"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
 	"github.com/uptrace/bun"
 
@@ -34,6 +37,15 @@ var (
 )
 
 func main() {
+	env, ok := os.LookupEnv("GOMMERCE_ENVRIONMENT")
+	if !ok {
+		env = "development"
+	}
+	godotenv.Load(fmt.Sprintf(".env.%s.local", env))
+	godotenv.Load(".env.local")
+	godotenv.Load(fmt.Sprintf(".env.%s", env))
+	godotenv.Load(".env")
+	os.Setenv("GOMMERCE_ENVRIONMENT", env) // prevent .env files from overriding it
 	fx.New(
 		fx.Provide(config.LoadYamlConfig, config.ExtractSections), // load and extract config sections
 		fx.Provide(logging.NewLogger),                             // create logger
@@ -65,13 +77,14 @@ func main() {
 				auth *secure.ServerAuthorizer, matcher selector.Matcher, oss *srv_v1b.ObjectStoreService,
 			) (http.Handler, error) {
 				return server.NewGRPCHandler(cfg,
+					server.WithCorsOptions(cfg.GetCors()),               // add cors options
 					server.WithOTELStatsHandler(tp, mp),                 // add opentelemetry stats handler
 					server.WithLoggingInterceptor(logger),               // add logging interceptor
 					server.WithRecoveryInterceptor(nil),                 // add recovery interceptor
 					server.WithSecureInterceptor(auth, matcher),         // add secure interceptor
 					server.WithValidatorInterceptor(),                   // add validator interceptor
 					server.WithRegistrations(regs...),                   // add registrations
-					server.WithServeMuxRoutes(oss.ServerMuxRoutes()...), // add mux handler func
+					server.WithServeMuxRoutes(oss.ServerMuxRoutes()...), // add oss mux routes
 					server.WithStaticFileHandler("/**", static.FS()),    // add static file handler
 				)
 			}, grpc_handler_anns)),

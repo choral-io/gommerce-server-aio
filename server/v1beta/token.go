@@ -20,19 +20,19 @@ type LoginProvider interface {
 	Login(ctx context.Context, realm, username, password, idToken string, scope []string) (*models.Login, error)
 }
 
-type FormPasswordLoginProvider struct {
+type formPasswordLoginProvider struct {
 	bdb bun.IDB
 }
 
 func NewFormPasswordLoginProvider(bdb bun.IDB) LoginProvider {
-	return &FormPasswordLoginProvider{bdb: bdb}
+	return &formPasswordLoginProvider{bdb: bdb}
 }
 
-func (p *FormPasswordLoginProvider) Name() string {
+func (p *formPasswordLoginProvider) Name() string {
 	return LOGIN_PROVIDER_FORM_PASSWORD
 }
 
-func (p *FormPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
+func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
 	login := &models.Login{}
 	if err := p.bdb.NewSelect().Model(login).
 		Where(`"login"."provider" = ?`, LOGIN_PROVIDER_FORM_PASSWORD).
@@ -50,16 +50,16 @@ func (p *FormPasswordLoginProvider) Login(ctx context.Context, realmId, username
 	return login, nil
 }
 
-type SMSOTPCodeLoginProvider struct{}
+type smsOTPCodeLoginProvider struct{}
 
 func NewSMSOTPCodeLoginProvider() LoginProvider {
-	return &SMSOTPCodeLoginProvider{}
+	return &smsOTPCodeLoginProvider{}
 }
 
-func (p *SMSOTPCodeLoginProvider) Name() string {
+func (p *smsOTPCodeLoginProvider) Name() string {
 	return LOGIN_PROVIDER_SMS_OTP_CODE
 }
 
-func (p *SMSOTPCodeLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
+func (p *smsOTPCodeLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
 	return nil, fmt.Errorf("login provider '%s' not implemented", LOGIN_PROVIDER_SMS_OTP_CODE)
 }

@@ -28,11 +28,8 @@ const (
 	base58_symbols = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 )
 
-func init() {
-	godotenv.Overload("./prisma/.env")
-}
-
 func main() {
+	godotenv.Load("prisma/.env")
 	log.SetFlags(0)
 	log.Printf("%sSeeding database...%s", ansi_blue, ansi_reset)
 	if err := seed(context.Background()); err != nil {

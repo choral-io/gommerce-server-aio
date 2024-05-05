@@ -21,7 +21,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func (p *FormPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error {
+func (p *formPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error {
 	if req.GetUsername().GetValue() == "" {
 		return validator.NewError("username", "username is required when using form password login provider")
 	}

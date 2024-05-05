@@ -26,7 +26,9 @@ type Device struct {
 func (m *Device) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
-		m.Id = data.DefaultIdWorker().NextHex()
+		if m.Id == "" {
+			m.Id = data.DefaultIdWorker().NextHex()
+		}
 		m.CreatedAt = time.Now()
 		m.UpdatedAt = sql.NullTime{Valid: false}
 	case *bun.UpdateQuery:

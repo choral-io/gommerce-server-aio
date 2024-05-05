@@ -52,6 +52,8 @@ model User {
   realm          Realm        @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_users_realms_realm_id")
   creator        User?        @relation("user_creator", fields: [creatorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_users_creator_id")
   createdUsers   User[]       @relation("user_creator")
+  ChatMembers    ChatMember[]
+  ChatRecords    ChatRecord[]
 
   @@unique([realmId, emailAddress], map: "ix_users_realm_id_email_address")
   @@unique([realmId, phoneNumber], map: "ix_users_realm_id_phone_number")
@@ -572,4 +574,54 @@ model Review {
   @@index([authorId], map: "ix_reviews_author_id")
   @@index([productSkuId], map: "ix_reviews_product_sku_id")
   @@map("reviews")
+}
+
+model ChatSession {
+  id           String       @id @db.VarChar(16)
+  readonly     Boolean      @default(false)
+  createdAt    DateTime     @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime?    @map("updated_at") @db.Timestamp(6)
+  deletedAt    DateTime?    @map("deleted_at") @db.Timestamp(6)
+  iconUrl      String?      @map("icon_url") @db.VarChar(2048)
+  title        String       @db.VarChar(32)
+  introduction String?      @db.VarChar(128)
+  members      ChatMember[]
+  records      ChatRecord[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMember {
+  userId      String      @map("user_id") @db.VarChar(16)
+  sessionId   String      @map("session_id") @db.VarChar(16)
+  createdAt   DateTime    @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime?   @map("updated_at") @db.Timestamp(6)
+  readCursor  String?     @map("read_cursor") @db.VarChar(16)
+  permission  BigInt
+  displayName String?     @map("display_name") @db.VarChar(64)
+  user        User        @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_chat_members_users_user_id")
+  session     ChatSession @relation(fields: [sessionId], references: [id], onUpdate: Restrict, map: "fk_chat_members_chat_sessions_session_id")
+
+  @@id([userId, sessionId])
+  @@index([userId], map: "ix_chat_members_user_id")
+  @@index([sessionId], map: "ix_chat_members_session_id")
+  @@map("chat_members")
+}
+
+model ChatRecord {
+  id        String      @id @db.VarChar(16)
+  sessionId String      @map("session_id") @db.VarChar(16)
+  creatorId String      @map("creator_id") @db.VarChar(16)
+  createdAt DateTime    @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime?   @map("updated_at") @db.Timestamp(6)
+  deletedAt DateTime?   @map("deleted_at") @db.Timestamp(6)
+  version   String      @db.VarChar(32)
+  headers   Json
+  content   Json
+  session   ChatSession @relation(fields: [sessionId], references: [id], onUpdate: Restrict, map: "fk_chat_records_chat_sessions_session_id")
+  creator   User        @relation(fields: [creatorId], references: [id], onUpdate: Restrict, map: "fk_chat_records_users_creator_id")
+
+  @@index([sessionId], map: "ix_chat_records_session_id")
+  @@index([creatorId], map: "ix_chat_records_creator_id")
+  @@map("chat_records")
 }

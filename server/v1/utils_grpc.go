@@ -205,11 +205,7 @@ func (d *dateTimeServiceServer) WatchLocalNow(_ *utils.WatchLocalNowRequest, srv
 				return err
 			}
 		case <-srv.Context().Done():
-			if err := srv.Context().Err(); err == context.Canceled {
-				return nil
-			} else {
-				return err
-			}
+			return srv.Context().Err()
 		}
 	}
 }
