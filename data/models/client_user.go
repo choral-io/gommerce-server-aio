@@ -12,12 +12,12 @@ type ClientUser struct {
 	bun.BaseModel `bun:"table:client_users,alias:client_user"`
 
 	// Columns
-	ClientId  string       `json:"client_id" bun:"client_id,pk"`
-	UserId    string       `json:"user_id" bun:"user_id,pk"`
-	Immutable bool         `json:"immutable" bun:"immutable"`
-	CreatedAt time.Time    `json:"created_at" bun:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at" bun:"updated_at"`
-	DeletedAt sql.NullTime `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
+	ClientId  string       `bun:"client_id,pk"`
+	UserId    string       `bun:"user_id,pk"`
+	Immutable bool         `bun:"immutable"`
+	CreatedAt time.Time    `bun:"created_at"`
+	UpdatedAt sql.NullTime `bun:"updated_at"`
+	DeletedAt sql.NullTime `bun:"deleted_at,soft_delete,nullzero"`
 }
 
 func (m *ClientUser) BeforeAppendModel(ctx context.Context, query bun.Query) error {

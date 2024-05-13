@@ -18,7 +18,7 @@ type ChatSession struct {
 	CreatedAt    time.Time      `bun:"created_at"`
 	UpdatedAt    sql.NullTime   `bun:"updated_at"`
 	DeletedAt    sql.NullTime   `bun:"deleted_at,nullzero,soft_delete"`
-	IconURL      sql.NullString `bun:"icon_url"`
+	IconUrl      sql.NullString `bun:"icon_url"`
 	Title        string         `bun:"title"`
 	Introduction sql.NullString `bun:"introduction"`
 

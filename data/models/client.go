@@ -13,16 +13,16 @@ type Client struct {
 	bun.BaseModel `bun:"table:clients,alias:client"`
 
 	// Columns
-	Id          string         `json:"id" bun:"id,pk"`
-	Disabled    bool           `json:"disabled" bun:"disabled"`
-	Immutable   bool           `json:"immutable" bun:"immutable"`
-	CreatedAt   time.Time      `json:"created_at" bun:"created_at"`
-	UpdatedAt   sql.NullTime   `json:"updated_at" bun:"updated_at"`
-	DeletedAt   sql.NullTime   `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
-	ExpiresAt   sql.NullTime   `json:"expires_at" bun:"expires_at"`
-	SecretKey   string         `json:"secret_key" bun:"secret_key"`
-	SecretCode  sql.NullString `json:"_" bun:"secret_code"`
-	Description sql.NullString `json:"description" bun:"description"`
+	Id          string         `bun:"id,pk"`
+	Disabled    bool           `bun:"disabled"`
+	Immutable   bool           `bun:"immutable"`
+	CreatedAt   time.Time      `bun:"created_at"`
+	UpdatedAt   sql.NullTime   `bun:"updated_at"`
+	DeletedAt   sql.NullTime   `bun:"deleted_at,soft_delete,nullzero"`
+	ExpiresAt   sql.NullTime   `bun:"expires_at"`
+	SecretKey   string         `bun:"secret_key"`
+	SecretCode  sql.NullString `bun:"secret_code"`
+	Description sql.NullString `bun:"description"`
 }
 
 func (m *Client) BeforeAppendModel(ctx context.Context, query bun.Query) error {

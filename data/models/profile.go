@@ -12,14 +12,14 @@ type Profile struct {
 	bun.BaseModel `bun:"table:profiles,alias:profile"`
 
 	// Columns
-	Id           string         `json:"id" bun:"id,pk"`
-	CreatedAt    time.Time      `json:"created_at" bun:"created_at"`
-	UpdatedAt    sql.NullTime   `json:"updated_at" bun:"updated_at"`
-	DisplayName  sql.NullString `json:"display_name" bun:"display_name"`
-	AvatarUrl    sql.NullString `json:"avatar_url" bun:"avatar_url"`
-	Gender       sql.NullString `json:"gender" bun:"gender"`
-	Birthdate    sql.NullTime   `json:"birthdate" bun:"birthdate"`
-	Introduction sql.NullString `json:"introduction" bun:"introduction"`
+	Id           string         `bun:"id,pk"`
+	CreatedAt    time.Time      `bun:"created_at"`
+	UpdatedAt    sql.NullTime   `bun:"updated_at"`
+	DisplayName  string         `bun:"display_name"`
+	AvatarUrl    sql.NullString `bun:"avatar_url"`
+	Gender       sql.NullString `bun:"gender"`
+	Birthdate    sql.NullTime   `bun:"birthdate"`
+	Introduction sql.NullString `bun:"introduction"`
 
 	// Relations
 	User *User `bun:"rel:belongs-to,join:id=id"`

@@ -33,8 +33,8 @@ func (p *formPasswordLoginProvider) Name() string {
 }
 
 func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
-	login := &models.Login{}
-	if err := p.bdb.NewSelect().Model(login).
+	login := models.Login{}
+	if err := p.bdb.NewSelect().Model(&login).
 		Where(`"login"."provider" = ?`, LOGIN_PROVIDER_FORM_PASSWORD).
 		Where(`"login"."identifier" = ?`, username).
 		Where(`"user"."realm_id" = ?`, realmId).
@@ -47,7 +47,7 @@ func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username
 	if err := bcrypt.CompareHashAndPassword([]byte(login.Credential.String), []byte(password)); err != nil {
 		return nil, errors.New("password not match")
 	}
-	return login, nil
+	return &login, nil
 }
 
 type smsOTPCodeLoginProvider struct{}

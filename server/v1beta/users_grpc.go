@@ -49,8 +49,8 @@ func (s *usersServiceServer) Authorize(ctx context.Context, procedure string) er
 }
 
 func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequest) (*iam.RegisterResponse, error) {
-	realm := &models.Realm{}
-	if err := s.bdb.NewSelect().Model(realm).Where("name = ?", req.Realm).Scan(ctx); err != nil {
+	realm := models.Realm{}
+	if err := s.bdb.NewSelect().Model(&realm).Where("name = ?", req.Realm).Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, status.Errorf(codes.InvalidArgument, "realm %s not found", req.Realm)
 		}
@@ -59,28 +59,29 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 	if !realm.AllowRegistration() {
 		return nil, status.Errorf(codes.PermissionDenied, "realm %s does not allow registration", req.Realm)
 	}
-	user := &models.User{
+	user := models.User{
 		RealmId:    realm.Id,
 		Disabled:   false,
 		Approved:   true,
 		Verified:   true,
 		Attributes: map[string]string{},
 	}
-	profile := &models.Profile{
-		DisplayName: sqlpb.ToNullString(req.DisplayName),
+	profile := models.Profile{
+		DisplayName: req.DisplayName.GetValue(),
 		AvatarUrl:   sqlpb.ToNullString(req.AvatarUrl),
 		Gender:      gender.ToSqlNullString(req.Gender),
 	}
-	if profile.DisplayName.Valid {
-		user.Attributes["profile.display_name"] = profile.DisplayName.String
+	if profile.DisplayName == "" {
+		profile.DisplayName = req.Username
 	}
+	user.Attributes["profile.display_name"] = profile.DisplayName
 	if profile.AvatarUrl.Valid {
 		user.Attributes["profile.avatar_url"] = profile.AvatarUrl.String
 	}
 	if profile.Gender.Valid {
 		user.Attributes["profile.gender"] = profile.Gender.String
 	}
-	login := &models.Login{
+	login := models.Login{
 		Provider:   LOGIN_PROVIDER_FORM_PASSWORD,
 		Identifier: req.Username,
 		Metadata:   map[string]string{},
@@ -91,15 +92,15 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		login.Credential = sql.NullString{Valid: true, String: string(hp)}
 	}
 	err := s.bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		if _, err := tx.NewInsert().Model(user).Exec(ctx); err != nil {
+		if _, err := tx.NewInsert().Model(&user).Exec(ctx); err != nil {
 			return status.Errorf(codes.Unknown, "error creating user: %v", err)
 		}
 		profile.Id = user.Id
-		if _, err := tx.NewInsert().Model(profile).Exec(ctx); err != nil {
+		if _, err := tx.NewInsert().Model(&profile).Exec(ctx); err != nil {
 			return status.Errorf(codes.Unknown, "error creating profile: %v", err)
 		}
 		login.UserId = user.Id
-		if _, err := tx.NewInsert().Model(login).Exec(ctx); err != nil {
+		if _, err := tx.NewInsert().Model(&login).Exec(ctx); err != nil {
 			return status.Errorf(codes.Unknown, "error creating login: %v", err)
 		}
 		return nil
@@ -108,12 +109,12 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		return nil, err
 	}
 	return &iam.RegisterResponse{
-		User: toUserPB(user),
+		User: toUserPB(&user),
 	}, nil
 }
 
 func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRequest) (*iam.ListUsersResponse, error) {
-	var users []*models.User
+	var users []models.User
 	query := s.bdb.NewSelect().Model(&users)
 	total, err := query.Apply(data.WithPaging(req)).
 		Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
@@ -130,23 +131,23 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 		Items: make([]*iam.User, len(users)),
 	}
 	for i, u := range users {
-		res.Items[i] = toUserPB(u)
+		res.Items[i] = toUserPB(&u)
 	}
 	return res, nil
 }
 
 func (s *usersServiceServer) GetIdentity(ctx context.Context, req *iam.GetIdentityRequest) (*iam.GetIdentityResponse, error) {
-	user := &models.User{
+	user := models.User{
 		Id: secure.IdentityFromContext(ctx).Token().Subject(),
 	}
-	err := s.bdb.NewSelect().Model(user).WherePK().
+	err := s.bdb.NewSelect().Model(&user).WherePK().
 		Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
 		Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return &iam.GetIdentityResponse{
-		User:  toUserPB(user),
+		User:  toUserPB(&user),
 		Scope: secure.IdentityFromContext(ctx).Token().Scope(),
 	}, nil
 }

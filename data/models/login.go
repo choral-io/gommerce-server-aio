@@ -18,18 +18,18 @@ type Login struct {
 	bun.BaseModel `bun:"table:logins,alias:login"`
 
 	// Columns
-	Id         string            `json:"id" bun:"id,pk"`
-	UserId     string            `json:"user_id" bun:"user_id"`
-	Disabled   bool              `json:"disabled" bun:"disabled"`
-	Immutable  bool              `json:"immutable" bun:"immutable"`
-	CreatedAt  time.Time         `json:"created_at" bun:"created_at"`
-	UpdatedAt  sql.NullTime      `json:"updated_at" bun:"updated_at"`
-	DeletedAt  sql.NullTime      `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
-	ExpiresAt  sql.NullTime      `json:"expires_at" bun:"expires_at"`
-	Provider   string            `json:"provider" bun:"provider"`
-	Identifier string            `json:"identifier" bun:"identifier"`
-	Credential sql.NullString    `json:"-" bun:"credential"`
-	Metadata   map[string]string `json:"metadata" bun:"metadata,json_use_number"`
+	Id         string            `bun:"id,pk"`
+	UserId     string            `bun:"user_id"`
+	Disabled   bool              `bun:"disabled"`
+	Immutable  bool              `bun:"immutable"`
+	CreatedAt  time.Time         `bun:"created_at"`
+	UpdatedAt  sql.NullTime      `bun:"updated_at"`
+	DeletedAt  sql.NullTime      `bun:"deleted_at,soft_delete,nullzero"`
+	ExpiresAt  sql.NullTime      `bun:"expires_at"`
+	Provider   string            `bun:"provider"`
+	Identifier string            `bun:"identifier"`
+	Credential sql.NullString    `bun:"credential"`
+	Metadata   map[string]string `bun:"metadata,json_use_number"`
 
 	// Relations
 	User *User `bun:"rel:belongs-to,join:user_id=id"`

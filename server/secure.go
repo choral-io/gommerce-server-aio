@@ -46,8 +46,8 @@ func (s *BasicTokenStore) Renew(string, time.Duration) (string, error) {
 
 func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 	if username, password, err := parseBasicAuth(value); err == nil {
-		client := &models.Client{}
-		if err := s.bdb.NewSelect().Model(client).
+		client := models.Client{}
+		if err := s.bdb.NewSelect().Model(&client).
 			Where(`secret_key = ?`, username).Scan(context.Background()); err != nil {
 			return nil, secure.ErrInvalidToken
 		}

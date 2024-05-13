@@ -28,6 +28,7 @@ type ChatMember struct {
 
 	// Relations
 	User    *User        `bun:"rel:belongs-to,join:user_id=id"`
+	Profile *Profile     `bun:"rel:belongs-to,join:user_id=id"`
 	Session *ChatSession `bun:"rel:belongs-to,join:session_id=id"`
 }
 

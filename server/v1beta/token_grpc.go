@@ -85,8 +85,8 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 			return nil, err
 		}
 	}
-	realm := &models.Realm{}
-	if err := s.bdb.NewSelect().Model(realm).Where(`"realm"."name" = ?`, req.Realm).Scan(ctx); err != nil {
+	realm := models.Realm{}
+	if err := s.bdb.NewSelect().Model(&realm).Where(`"realm"."name" = ?`, req.Realm).Scan(ctx); err != nil {
 		return nil, fmt.Errorf("realm with name %s not found", req.Realm)
 	}
 	login, err := provider.Login(ctx, realm.Id, req.Username.GetValue(), req.Password.GetValue(), req.IdToken.GetValue(), nil)

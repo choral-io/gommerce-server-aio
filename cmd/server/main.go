@@ -69,6 +69,7 @@ func main() {
 			fx.Annotate(srv_v1.NewDateTimeServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1b.NewTokensServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1b.NewUsersServiceServer, grpc_servers_anns...),
+			fx.Annotate(srv_v1b.NewChatsServiceServer, grpc_servers_anns...),
 			fx.Annotate(srv_v1b.NewStateStoreServiceServer, grpc_servers_anns...),
 		),
 		fx.Provide( // create grpc handler

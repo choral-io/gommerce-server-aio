@@ -12,12 +12,12 @@ type RoleUser struct {
 	bun.BaseModel `bun:"table:role_users,alias:role_user"`
 
 	// Columns
-	RoleId    string       `json:"role_id" bun:"role_id,pk"`
-	UserId    string       `json:"user_id" bun:"user_id,pk"`
-	Immutable bool         `json:"immutable" bun:"immutable"`
-	CreatedAt time.Time    `json:"created_at" bun:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at" bun:"updated_at"`
-	DeletedAt sql.NullTime `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
+	RoleId    string       `bun:"role_id,pk"`
+	UserId    string       `bun:"user_id,pk"`
+	Immutable bool         `bun:"immutable"`
+	CreatedAt time.Time    `bun:"created_at"`
+	UpdatedAt sql.NullTime `bun:"updated_at"`
+	DeletedAt sql.NullTime `bun:"deleted_at,soft_delete,nullzero"`
 
 	// Relations
 	Role *Role `bun:"rel:belongs-to,join:role_id=id"`

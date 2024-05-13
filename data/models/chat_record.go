@@ -21,8 +21,8 @@ type ChatRecord struct {
 	UpdatedAt sql.NullTime      `bun:"updated_at"`
 	DeletedAt sql.NullTime      `bun:"deleted_at,nullzero,soft_delete"`
 	Version   string            `bun:"version"`
-	Headers   map[string]string `bun:"headers"`
-	Content   json.RawMessage   `bun:"content"`
+	Headers   map[string]string `bun:"headers,json_use_number"`
+	Content   json.RawMessage   `bun:"content,json_use_number"`
 
 	// Relations
 	Session *ChatSession `bun:"rel:belongs-to,join:session_id=id"`

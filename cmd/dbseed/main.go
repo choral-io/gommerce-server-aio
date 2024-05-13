@@ -74,6 +74,39 @@ func seed(ctx context.Context) error {
 
 	// insert data
 	return bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		systemRealm := models.Realm{
+			Immutable: true,
+			Flags:     0b0000,
+			Name:      "system",
+			Title:     "System",
+		}
+		if _, err := tx.NewInsert().Model(&systemRealm).Exec(ctx); err != nil {
+			return err
+		}
+
+		systemUser := models.User{
+			RealmId:   systemRealm.Id,
+			Approved:  true,
+			Verified:  true,
+			Immutable: true,
+			Flags:     0b0000,
+			Attributes: map[string]string{
+				"profile.display_name": "$SYSTEM",
+			},
+			Description: sql.NullString{Valid: true, String: "Built-in system user."},
+		}
+		if _, err := tx.NewInsert().Model(&systemUser).Exec(ctx); err != nil {
+			return err
+		}
+
+		systemProfile := models.Profile{
+			Id:          systemUser.Id,
+			DisplayName: "$SYSTEM",
+		}
+		if _, err := tx.NewInsert().Model(&systemProfile).Exec(ctx); err != nil {
+			return err
+		}
+
 		adminRealm := models.Realm{
 			Immutable: true,
 			Flags:     0b0000,
@@ -121,7 +154,7 @@ func seed(ctx context.Context) error {
 
 		adminProfile := models.Profile{
 			Id:          adminUser.Id,
-			DisplayName: sql.NullString{Valid: true, String: "Admin"},
+			DisplayName: "Admin",
 		}
 		if _, err := tx.NewInsert().Model(&adminProfile).Exec(ctx); err != nil {
 			return err
@@ -147,7 +180,11 @@ func seed(ctx context.Context) error {
 		}
 
 		roleUsers := []models.RoleUser{
-			{RoleId: adminRole.Id, UserId: adminUser.Id},
+			{
+				RoleId:    adminRole.Id,
+				UserId:    adminUser.Id,
+				Immutable: true,
+			},
 		}
 		if _, err := tx.NewInsert().Model(&roleUsers).Exec(ctx); err != nil {
 			return err
@@ -176,9 +213,50 @@ func seed(ctx context.Context) error {
 		}
 
 		clientUsers := []models.ClientUser{
-			{ClientId: consoleClient.Id, UserId: adminUser.Id, Immutable: true},
+			{
+				ClientId:  consoleClient.Id,
+				UserId:    adminUser.Id,
+				Immutable: true,
+			},
 		}
 		if _, err := tx.NewInsert().Model(&clientUsers).Exec(ctx); err != nil {
+			return err
+		}
+
+		chatSession := models.ChatSession{
+			Readonly: true,
+			Title:    "$SYSTEM",
+		}
+		if _, err := tx.NewInsert().Model(&chatSession).Exec(ctx); err != nil {
+			return err
+		}
+
+		chatMembers := []models.ChatMember{
+			{
+				UserId:     systemUser.Id,
+				SessionId:  chatSession.Id,
+				Permission: models.CHAT_MEMBER_PERMISSION_OWNER,
+			},
+			{
+				UserId:     adminUser.Id,
+				SessionId:  chatSession.Id,
+				Permission: models.CHAT_MEMBER_PERMISSION_MEMBER,
+			},
+		}
+		if _, err := tx.NewInsert().Model(&chatMembers).Exec(ctx); err != nil {
+			return err
+		}
+
+		chatRecord := models.ChatRecord{
+			SessionId: chatSession.Id,
+			CreatorId: systemUser.Id,
+			Version:   "0.0.1",
+			Headers: map[string]string{
+				"type": "text",
+			},
+			Content: []byte(`"Welcome to Gommerce."`),
+		}
+		if _, err := tx.NewInsert().Model(&chatRecord).Exec(ctx); err != nil {
 			return err
 		}
 

@@ -64,7 +64,7 @@ model Profile {
   id           String    @id(map: "pk_profiles") @db.VarChar(16)
   createdAt    DateTime  @map("created_at") @db.Timestamp(6)
   updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
-  displayName  String?   @map("display_name") @db.VarChar(64)
+  displayName  String    @map("display_name") @db.VarChar(64)
   avatarUrl    String?   @map("avatar_url") @db.VarChar(2048)
   gender       String?   @db.VarChar(32)
   birthdate    DateTime? @db.Date

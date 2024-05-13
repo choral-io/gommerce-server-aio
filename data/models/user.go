@@ -13,24 +13,24 @@ type User struct {
 	bun.BaseModel `bun:"table:users,alias:user"`
 
 	// Columns
-	Id             string            `json:"id" bun:"id,pk"`
-	RealmId        string            `json:"realm_id" bun:"realm_id"`
-	CreatorId      sql.NullString    `json:"creator_id" bun:"creator_id"`
-	Disabled       bool              `json:"disabled" bun:"disabled"`
-	Approved       bool              `json:"approved" bun:"approved"`
-	Verified       bool              `json:"verified" bun:"verified"`
-	Immutable      bool              `json:"immutable" bun:"immutable"`
-	CreatedAt      time.Time         `json:"created_at" bun:"created_at"`
-	UpdatedAt      sql.NullTime      `json:"updated_at" bun:"updated_at"`
-	DeletedAt      sql.NullTime      `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
-	ExpiresAt      sql.NullTime      `json:"expires_at" bun:"expires_at"`
-	FirstLoginTime sql.NullTime      `json:"first_login_time" bun:"first_login_time"`
-	LastActiveTime sql.NullTime      `json:"last_active_time" bun:"last_active_time"`
-	Flags          int64             `json:"flags" bun:"flags"`
-	Attributes     map[string]string `json:"attributes" bun:"attributes,json_use_number"`
-	PhoneNumber    sql.NullString    `json:"-" bun:"phone_number"`
-	EmailAddress   sql.NullString    `json:"-" bun:"email_address"`
-	Description    sql.NullString    `json:"description" bun:"description"`
+	Id             string            `bun:"id,pk"`
+	RealmId        string            `bun:"realm_id"`
+	CreatorId      sql.NullString    `bun:"creator_id"`
+	Disabled       bool              `bun:"disabled"`
+	Approved       bool              `bun:"approved"`
+	Verified       bool              `bun:"verified"`
+	Immutable      bool              `bun:"immutable"`
+	CreatedAt      time.Time         `bun:"created_at"`
+	UpdatedAt      sql.NullTime      `bun:"updated_at"`
+	DeletedAt      sql.NullTime      `bun:"deleted_at,soft_delete,nullzero"`
+	ExpiresAt      sql.NullTime      `bun:"expires_at"`
+	FirstLoginTime sql.NullTime      `bun:"first_login_time"`
+	LastActiveTime sql.NullTime      `bun:"last_active_time"`
+	Flags          int64             `bun:"flags"`
+	Attributes     map[string]string `bun:"attributes,json_use_number"`
+	PhoneNumber    sql.NullString    `bun:"phone_number"`
+	EmailAddress   sql.NullString    `bun:"email_address"`
+	Description    sql.NullString    `bun:"description"`
 
 	// Relations
 	Realm   *Realm   `bun:"rel:belongs-to,join:realm_id=id"`

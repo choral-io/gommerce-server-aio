@@ -12,11 +12,11 @@ type UserDevice struct {
 	bun.BaseModel `bun:"table:user_devices,alias:user_device"`
 
 	// Columns
-	UserId    string       `json:"user_id" bun:"user_id,pk"`
-	DeviceId  string       `json:"device_id" bun:"device_id,pk"`
-	CreatedAt time.Time    `json:"created_at" bun:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at" bun:"updated_at"`
-	DeletedAt sql.NullTime `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
+	UserId    string       `bun:"user_id,pk"`
+	DeviceId  string       `bun:"device_id,pk"`
+	CreatedAt time.Time    `bun:"created_at"`
+	UpdatedAt sql.NullTime `bun:"updated_at"`
+	DeletedAt sql.NullTime `bun:"deleted_at,soft_delete,nullzero"`
 }
 
 func (m *UserDevice) BeforeAppendModel(ctx context.Context, query bun.Query) error {

@@ -10,23 +10,23 @@ import (
 )
 
 const (
-	REALM_FLAGS_ALLOW_REGISTRATION int64 = 1 << 0
+	REALM_FLAGS_ALLOW_REGISTRATION int64 = 0b_0000_0001
 )
 
 type Realm struct {
 	bun.BaseModel `bun:"table:realms,alias:realm"`
 
 	// Columns
-	Id          string         `json:"id" bun:"id,pk"`
-	Disabled    bool           `json:"disabled" bun:"disabled"`
-	Immutable   bool           `json:"immutable" bun:"immutable"`
-	CreatedAt   time.Time      `json:"created_at" bun:"created_at"`
-	UpdatedAt   sql.NullTime   `json:"updated_at" bun:"updated_at"`
-	DeletedAt   sql.NullTime   `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
-	Flags       int64          `json:"flags" bun:"flags"`
-	Name        string         `json:"name" bun:"name"`
-	Title       string         `json:"title" bun:"title"`
-	Description sql.NullString `json:"description" bun:"description"`
+	Id          string         `bun:"id,pk"`
+	Disabled    bool           `bun:"disabled"`
+	Immutable   bool           `bun:"immutable"`
+	CreatedAt   time.Time      `bun:"created_at"`
+	UpdatedAt   sql.NullTime   `bun:"updated_at"`
+	DeletedAt   sql.NullTime   `bun:"deleted_at,soft_delete,nullzero"`
+	Flags       int64          `bun:"flags"`
+	Name        string         `bun:"name"`
+	Title       string         `bun:"title"`
+	Description sql.NullString `bun:"description"`
 }
 
 func (m *Realm) BeforeAppendModel(ctx context.Context, query bun.Query) error {

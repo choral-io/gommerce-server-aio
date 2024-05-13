@@ -13,15 +13,15 @@ type Role struct {
 	bun.BaseModel `bun:"table:roles,alias:role"`
 
 	// Columns
-	Id          string         `json:"id" bun:"id,pk"`
-	RealmId     string         `json:"realm_id" bun:"realm_id"`
-	Disabled    bool           `json:"disabled" bun:"disabled"`
-	Immutable   bool           `json:"immutable" bun:"immutable"`
-	CreatedAt   time.Time      `json:"created_at" bun:"created_at"`
-	UpdatedAt   sql.NullTime   `json:"updated_at" bun:"updated_at"`
-	DeletedAt   sql.NullTime   `json:"deleted_at" bun:"deleted_at,soft_delete,nullzero"`
-	Name        string         `json:"name" bun:"name"`
-	Description sql.NullString `json:"description" bun:"description"`
+	Id          string         `bun:"id,pk"`
+	RealmId     string         `bun:"realm_id"`
+	Disabled    bool           `bun:"disabled"`
+	Immutable   bool           `bun:"immutable"`
+	CreatedAt   time.Time      `bun:"created_at"`
+	UpdatedAt   sql.NullTime   `bun:"updated_at"`
+	DeletedAt   sql.NullTime   `bun:"deleted_at,soft_delete,nullzero"`
+	Name        string         `bun:"name"`
+	Description sql.NullString `bun:"description"`
 
 	// Relations
 	Realm *Realm `bun:"rel:belongs-to,join:realm_id=id"`
