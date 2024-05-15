@@ -198,7 +198,7 @@ func seed(ctx context.Context) error {
 			return err
 		} else {
 			consoleClient.SecretKey = pwd
-			log.Printf("%susing sequence generated secret key for console client:  %s%s%s", ansi_blue, ansi_yellow, pwd, ansi_reset)
+			log.Printf("%susing randomly generated secret key for console client:  %s%s%s", ansi_blue, ansi_yellow, pwd, ansi_reset)
 		}
 		if pwd, err := secure.RandString(32, base58_symbols); err != nil {
 			return err
