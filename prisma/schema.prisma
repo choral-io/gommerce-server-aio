@@ -39,21 +39,20 @@ model User {
   phoneNumber    String?      @map("phone_number") @db.VarChar(64)
   emailAddress   String?      @map("email_address") @db.VarChar(128)
   description    String?      @db.VarChar(255)
+  chatMembers    ChatMember[]
+  chatRecords    ChatRecord[]
   clientUsers    ClientUser[]
   contacts       Contact[]
   devices        Device[]
   logins         Login[]
-  orders         Order[]
-  Profile        Profile?
+  merchants      Merchant[]
+  profile        Profile?
   reviews        Review[]
   roleUsers      RoleUser[]
-  subjects       Subject[]
   userDevices    UserDevice[]
   realm          Realm        @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_users_realms_realm_id")
   creator        User?        @relation("user_creator", fields: [creatorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_users_creator_id")
   createdUsers   User[]       @relation("user_creator")
-  ChatMembers    ChatMember[]
-  ChatRecords    ChatRecord[]
 
   @@unique([realmId, emailAddress], map: "ix_users_realm_id_email_address")
   @@unique([realmId, phoneNumber], map: "ix_users_realm_id_phone_number")
@@ -184,32 +183,33 @@ model UserDevice {
   @@map("user_devices")
 }
 
-model Subject {
-  id            String    @id(map: "pk_subjects") @db.VarChar(16)
+model Merchant {
+  id            String    @id(map: "pk_merchants") @db.VarChar(16)
   ownerId       String?   @map("owner_id") @db.VarChar(16)
   disabled      Boolean   @default(false)
   immutable     Boolean   @default(false)
   createdAt     DateTime  @map("created_at") @db.Timestamp(6)
   updatedAt     DateTime  @map("updated_at") @db.Timestamp(6)
   expiresAt     DateTime? @map("expires_at") @db.Timestamp(6)
-  commonName    String    @unique(map: "ix_subjects_common_name") @map("common_name") @db.VarChar(128)
-  shortName     String    @unique(map: "ix_subjects_short_name") @map("short_name") @db.VarChar(64)
+  commonName    String    @unique(map: "ix_merchants_common_name") @map("common_name") @db.VarChar(128)
+  shortName     String    @unique(map: "ix_merchants_short_name") @map("short_name") @db.VarChar(64)
   licenseType   String    @map("license_type") @db.VarChar(32)
   licenseCode   String?   @map("license_code") @db.VarChar(64)
   accounts      Account[]
+  owner         User?     @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_merchants_users_owner_id")
+  orders        Order[]
   ownerPayments Payment[] @relation("payment_owner")
   payerPayments Payment[] @relation("payment_payer")
   payeePayments Payment[] @relation("payment_peyee")
   shops         Shop[]
-  owner         User?     @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_subjects_users_owner_id")
 
-  @@index([ownerId], map: "ix_subjects_owner_id")
-  @@map("subjects")
+  @@index([ownerId], map: "ix_merchants_owner_id")
+  @@map("merchants")
 }
 
 model Account {
   id             String         @id(map: "pk_accounts") @db.VarChar(16)
-  subjectId      String         @map("subject_id") @db.VarChar(16)
+  holderId       String         @map("holder_id") @db.VarChar(16)
   disabled       Boolean        @default(false)
   immutable      Boolean        @default(false)
   createdAt      DateTime       @map("created_at") @db.Timestamp(6)
@@ -220,9 +220,9 @@ model Account {
   currency       String         @db.VarChar(32)
   balance        Decimal?       @db.Decimal(16, 6)
   accountEntries AccountEntry[]
-  subject        Subject        @relation(fields: [subjectId], references: [id], onUpdate: Restrict, map: "fk_accounts_subjects_subject_id")
+  holder         Merchant       @relation(fields: [holderId], references: [id], onUpdate: Restrict, map: "fk_accounts_merchants_holder_id")
 
-  @@index([subjectId], map: "ix_accounts_subject_id")
+  @@index([holderId], map: "ix_accounts_holder_id")
   @@map("accounts")
 }
 
@@ -262,9 +262,9 @@ model Payment {
   comment        String?        @db.VarChar(128)
   accountEntries AccountEntry[]
   orderPayments  OrderPayment[]
-  owner          Subject        @relation("payment_owner", fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_payments_subjects_owner_id")
-  payer          Subject?       @relation("payment_payer", fields: [payerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_payments_subjects_payer_id")
-  payee          Subject        @relation("payment_peyee", fields: [peyeeId], references: [id], onUpdate: Restrict, map: "fk_payments_subjects_peyee_id")
+  owner          Merchant       @relation("payment_owner", fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_owner_id")
+  payer          Merchant?      @relation("payment_payer", fields: [payerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_payments_merchants_payer_id")
+  payee          Merchant       @relation("payment_peyee", fields: [peyeeId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_peyee_id")
 
   @@index([ownerId], map: "ix_payments_owner_id")
   @@index([payerId], map: "ix_payments_payer_id")
@@ -313,7 +313,7 @@ model Catalog {
 
 model Shop {
   id         String    @id(map: "pk_shops") @db.VarChar(16)
-  subjectId  String    @map("subject_id") @db.VarChar(16)
+  holderId   String    @map("holder_id") @db.VarChar(16)
   disabled   Boolean   @default(false)
   immutable  Boolean   @default(false)
   createdAt  DateTime  @map("created_at") @db.Timestamp(6)
@@ -324,9 +324,9 @@ model Shop {
   shortName  String?   @unique(map: "ix_shops_short_name") @map("short_name") @db.VarChar(64)
   orders     Order[]
   products   Product[]
-  subject    Subject   @relation(fields: [subjectId], references: [id], onUpdate: Restrict, map: "fk_shops_subjects_subject_id")
+  holder     Merchant  @relation(fields: [holderId], references: [id], onUpdate: Restrict, map: "fk_shops_merchants_holder_id")
 
-  @@index([subjectId], map: "ix_shops_subject_id")
+  @@index([holderId], map: "ix_shops_holder_id")
   @@map("shops")
 }
 
@@ -450,7 +450,7 @@ model Order {
   orderPayments OrderPayment[]
   contact       Contact?       @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_orders_contacts_contact_id")
   shop          Shop           @relation(fields: [shopId], references: [id], onUpdate: Restrict, map: "fk_orders_shops_shop_id")
-  user          User           @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_orders_users_owner_id")
+  owner         Merchant       @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_orders_users_owner_id")
 
   @@index([contactId], map: "ix_orders_contact_id")
   @@index([ownerId], map: "ix_orders_owner_id")
@@ -599,8 +599,8 @@ model ChatMember {
   readCursor  String?     @map("read_cursor") @db.VarChar(16)
   permission  BigInt
   displayName String?     @map("display_name") @db.VarChar(64)
-  user        User        @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_chat_members_users_user_id")
   session     ChatSession @relation(fields: [sessionId], references: [id], onUpdate: Restrict, map: "fk_chat_members_chat_sessions_session_id")
+  user        User        @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_chat_members_users_user_id")
 
   @@id([userId, sessionId])
   @@index([userId], map: "ix_chat_members_user_id")
