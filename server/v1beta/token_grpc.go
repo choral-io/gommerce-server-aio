@@ -48,8 +48,8 @@ func NewTokensServiceServer(cfg config.SecureTokenConfig, bdb bun.IDB, ts secure
 		lps: make(map[string]LoginProvider, 2),
 	}
 
-	s.lps[LOGIN_PROVIDER_FORM_PASSWORD] = NewFormPasswordLoginProvider(bdb)
-	s.lps[LOGIN_PROVIDER_SMS_OTP_CODE] = NewSMSOTPCodeLoginProvider()
+	s.lps[LoginProviderFormPassword] = NewFormPasswordLoginProvider(bdb)
+	s.lps[LoginProviderSmsOtpCode] = NewSMSOTPCodeLoginProvider()
 
 	return s
 }
@@ -64,7 +64,7 @@ func (s *tokensServiceServer) RegisterGatewayClient(ctx context.Context, mux *ru
 
 func (s *tokensServiceServer) Authorize(ctx context.Context, procedure string) error {
 	if procedure == iam.TokensService_CreateToken_FullMethodName || procedure == iam.TokensService_RefreshToken_FullMethodName {
-		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AUTH_SCHEMA_BASIC))
+		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBasic))
 	}
 	return nil
 }
@@ -126,11 +126,11 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	for i, r := range roles {
 		scope[i] = "ROLE_" + strings.ToUpper(r)
 	}
-	uat, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_BEARER, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetAccessTokenTTL())
+	uat, err := s.ts.Issue(secure.NewToken(secure.TokenTypeBearer, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetAccessTokenTTL())
 	if err != nil {
 		return nil, err
 	}
-	urt, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_REFRESH, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetRefreshTokenTTL())
+	urt, err := s.ts.Issue(secure.NewToken(secure.TokenTypeRefresh, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetRefreshTokenTTL())
 	if err != nil {
 		return nil, err
 	}
@@ -153,26 +153,33 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 		return nil, err
 	}
 	return &iam.CreateTokenResponse{
-		TokenType:    secure.TOKEN_TYPE_BEARER,
+		TokenType:    secure.TokenTypeBearer,
 		ExpiresIn:    int32(time.Until(now.Add(s.cfg.GetAccessTokenTTL())).Seconds()),
 		AccessToken:  uat,
 		RefreshToken: urt,
 	}, nil
 }
 
-func (s *tokensServiceServer) RefreshToken(ctx context.Context, req *iam.RefreshTokenRequest) (*iam.RefreshTokenResponse, error) {
+func (s *tokensServiceServer) RevokeToken(_ context.Context, req *iam.RevokeTokenRequest) (*iam.RevokeTokenResponse, error) {
+	if _, err := s.ts.Revoke(req.GetAccessToken()); err != nil {
+		return nil, err
+	}
+	return &iam.RevokeTokenResponse{}, nil
+}
+
+func (s *tokensServiceServer) RefreshToken(_ context.Context, req *iam.RefreshTokenRequest) (*iam.RefreshTokenResponse, error) {
 	now := time.Now()
 	uat, err := s.ts.Renew(req.GetRefreshToken(), s.cfg.GetAccessTokenTTL())
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid refresh token: %s", err)
 	}
 	token, _ := s.ts.Verify(uat)
-	urt, err := s.ts.Issue(secure.NewToken(secure.TOKEN_TYPE_REFRESH, token.Realm(), token.Client(), token.Subject(), token.Scope()), s.cfg.GetRefreshTokenTTL())
+	urt, err := s.ts.Issue(secure.NewToken(secure.TokenTypeRefresh, token.Realm(), token.Client(), token.Subject(), token.Scope()), s.cfg.GetRefreshTokenTTL())
 	if err != nil {
 		return nil, err
 	}
 	return &iam.RefreshTokenResponse{
-		TokenType:    secure.TOKEN_TYPE_BEARER,
+		TokenType:    secure.TokenTypeBearer,
 		ExpiresIn:    int32(time.Until(now.Add(s.cfg.GetAccessTokenTTL())).Seconds()),
 		AccessToken:  uat,
 		RefreshToken: urt,

@@ -200,7 +200,7 @@ model Merchant {
   orders        Order[]
   ownerPayments Payment[] @relation("payment_owner")
   payerPayments Payment[] @relation("payment_payer")
-  payeePayments Payment[] @relation("payment_peyee")
+  payeePayments Payment[] @relation("payment_payee")
   shops         Shop[]
 
   @@index([ownerId], map: "ix_merchants_owner_id")
@@ -247,7 +247,7 @@ model AccountEntry {
 model Payment {
   id             String         @id(map: "pk_payments") @db.VarChar(16)
   ownerId        String         @map("owner_id") @db.VarChar(16)
-  peyeeId        String         @map("peyee_id") @db.VarChar(16)
+  payeeId        String         @map("payee_id") @db.VarChar(16)
   payerId        String?        @map("payer_id") @db.VarChar(16)
   createdAt      DateTime       @map("created_at") @db.Timestamp(6)
   updatedAt      DateTime       @map("updated_at") @db.Timestamp(6)
@@ -264,11 +264,11 @@ model Payment {
   orderPayments  OrderPayment[]
   owner          Merchant       @relation("payment_owner", fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_owner_id")
   payer          Merchant?      @relation("payment_payer", fields: [payerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_payments_merchants_payer_id")
-  payee          Merchant       @relation("payment_peyee", fields: [peyeeId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_peyee_id")
+  payee          Merchant       @relation("payment_payee", fields: [payeeId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_payee_id")
 
   @@index([ownerId], map: "ix_payments_owner_id")
   @@index([payerId], map: "ix_payments_payer_id")
-  @@index([peyeeId], map: "ix_payments_peyee_id")
+  @@index([payeeId], map: "ix_payments_payee_id")
   @@map("payments")
 }
 

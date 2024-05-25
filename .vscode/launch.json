@@ -9,7 +9,8 @@
       "program": "${workspaceFolder}/cmd/server",
       "cwd": "${workspaceFolder}",
       "env": {
-        "GOMMERCE_CONFIG_PATH": "${workspaceFolder}/config/app-local.yaml"
+        "CGO_ENABLED": "0",
+        "GOMMERCE_CONFIG_PATH": "./config/app-local.yaml"
       }
     }
   ]

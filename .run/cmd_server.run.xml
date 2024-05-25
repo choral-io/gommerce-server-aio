@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="cmd/server" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="gommerce-server-aio" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="CGO_ENABLED" value="0" />
+      <env name="GOMMERCE_CONFIG_PATH" value="./config/app-local.yaml" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/choral-io/gommerce-server-aio/cmd/server" />
+    <directory value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>

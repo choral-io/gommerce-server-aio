@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	REALM_FLAGS_ALLOW_REGISTRATION int64 = 0b_0000_0001
+	RealmFlagsAllowRegistration int64 = 0b_0000_0001
 )
 
 type Realm struct {
@@ -29,7 +29,7 @@ type Realm struct {
 	Description sql.NullString `bun:"description"`
 }
 
-func (m *Realm) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *Realm) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {
@@ -48,5 +48,5 @@ func (m *Realm) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 }
 
 func (m *Realm) AllowRegistration() bool {
-	return m.Flags&REALM_FLAGS_ALLOW_REGISTRATION != 0
+	return m.Flags&RealmFlagsAllowRegistration != 0
 }

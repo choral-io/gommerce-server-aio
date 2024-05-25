@@ -25,27 +25,27 @@ import (
 
 	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
 	srv "github.com/choral-io/gommerce-server-aio/server"
-	srv_v1 "github.com/choral-io/gommerce-server-aio/server/v1"
-	srv_v1b "github.com/choral-io/gommerce-server-aio/server/v1beta"
+	srv1 "github.com/choral-io/gommerce-server-aio/server/v1"
+	srv1b "github.com/choral-io/gommerce-server-aio/server/v1beta"
 	"github.com/choral-io/gommerce-server-aio/static"
 )
 
 var (
-	grpc_server_fx_tag = `group:"grpc_servers"`
-	grpc_servers_anns  = []fx.Annotation{fx.As(new(any)), fx.ResultTags(grpc_server_fx_tag)}
-	grpc_handler_anns  = fx.ParamTags(grpc_server_fx_tag)
+	grpcServerFxTag = `group:"grpc_servers"`
+	grpcServersAnns = []fx.Annotation{fx.As(new(any)), fx.ResultTags(grpcServerFxTag)}
+	grpcHandlerAnns = fx.ParamTags(grpcServerFxTag)
 )
 
 func main() {
-	env, ok := os.LookupEnv("GOMMERCE_ENVRIONMENT")
+	env, ok := os.LookupEnv("GOMMERCE_ENVIRONMENT")
 	if !ok {
 		env = "development"
 	}
-	godotenv.Load(fmt.Sprintf(".env.%s.local", env))
-	godotenv.Load(".env.local")
-	godotenv.Load(fmt.Sprintf(".env.%s", env))
-	godotenv.Load(".env")
-	os.Setenv("GOMMERCE_ENVRIONMENT", env) // prevent .env files from overriding it
+	_ = godotenv.Load(fmt.Sprintf(".env.%s.local", env))
+	_ = godotenv.Load(".env.local")
+	_ = godotenv.Load(fmt.Sprintf(".env.%s", env))
+	_ = godotenv.Load(".env")
+	_ = os.Setenv("GOMMERCE_ENVIRONMENT", env) // prevent .env files from overriding it
 	fx.New(
 		fx.Provide(config.LoadYamlConfig, config.ExtractSections), // load and extract config sections
 		fx.Provide(logging.NewLogger),                             // create logger
@@ -60,22 +60,22 @@ func main() {
 		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
 		fx.Provide(server.NewHTTPServer),                          // create http server
 		fx.Provide(events.NewNATSConn),                            // create nats connection
-		fx.Provide(srv_v1b.NewObjectStoreService),                 // create object store service
+		fx.Provide(srv1b.NewObjectStoreService),                   // create object store service
 		fx.Provide( // register grpc servers
-			fx.Annotate(server.NewHealthServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1.NewSequenceServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1.NewSnowflakeServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1.NewPasswordServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1.NewDateTimeServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1b.NewTokensServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1b.NewUsersServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1b.NewChatsServiceServer, grpc_servers_anns...),
-			fx.Annotate(srv_v1b.NewStateStoreServiceServer, grpc_servers_anns...),
+			fx.Annotate(server.NewHealthServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1.NewSequenceServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1.NewSnowflakeServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1.NewPasswordServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1.NewDateTimeServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1b.NewTokensServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1b.NewUsersServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1b.NewChatsServiceServer, grpcServersAnns...),
+			fx.Annotate(srv1b.NewStateStoreServiceServer, grpcServersAnns...),
 		),
 		fx.Provide( // create grpc handler
 			fx.Annotate(func(regs []any, cfg config.ServerHTTPConfig,
 				logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
-				auth *secure.ServerAuthorizer, matcher selector.Matcher, oss *srv_v1b.ObjectStoreService,
+				auth *secure.ServerAuthorizer, matcher selector.Matcher, oss *srv1b.ObjectStoreService,
 			) (http.Handler, error) {
 				return server.NewGRPCHandler(cfg,
 					server.WithCorsOptions(cfg.GetCors()),               // add cors options
@@ -88,7 +88,7 @@ func main() {
 					server.WithServeMuxRoutes(oss.ServerMuxRoutes()...), // add oss mux routes
 					server.WithStaticFileHandler("/**", static.FS()),    // add static file handler
 				)
-			}, grpc_handler_anns)),
+			}, grpcHandlerAnns)),
 		fx.Invoke(data.SetDefaultIdWorker), // set default id worker
 		fx.Invoke( // register db connection to lifecycle
 			func(bdb bun.IDB, lc fx.Lifecycle) {

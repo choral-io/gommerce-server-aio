@@ -20,7 +20,7 @@ type ClientUser struct {
 	DeletedAt sql.NullTime `bun:"deleted_at,soft_delete,nullzero"`
 }
 
-func (m *ClientUser) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *ClientUser) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		m.CreatedAt = time.Now()

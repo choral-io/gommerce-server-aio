@@ -49,8 +49,8 @@ func (s *ObjectStoreService) PutObject(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 	data := make([]byte, 512)
-	file.Read(data)
-	file.Seek(0, 0)
+	_, _ = file.Read(data)
+	_, _ = file.Seek(0, 0)
 	name := queryEscapePath(header.Filename)
 	path := queryEscapePath(pathParams["object"])
 	size := header.Size

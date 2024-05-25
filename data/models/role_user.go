@@ -24,7 +24,7 @@ type RoleUser struct {
 	User *User `bun:"rel:belongs-to,join:user_id=id"`
 }
 
-func (m *RoleUser) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *RoleUser) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		m.Immutable = false

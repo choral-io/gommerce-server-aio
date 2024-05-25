@@ -20,23 +20,23 @@ import (
 )
 
 const (
-	ansi_reset     = "\033[0m"
-	ansi_red       = "\033[31m"
-	ansi_green     = "\033[32m"
-	ansi_yellow    = "\033[33m"
-	ansi_blue      = "\033[34m"
-	base58_symbols = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	ansiReset   = "\033[0m"
+	ansiRed     = "\033[31m"
+	ansiGreen   = "\033[32m"
+	ansiYellow  = "\033[33m"
+	ansiBlue    = "\033[34m"
+	base58Chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 )
 
 func main() {
-	godotenv.Load("prisma/.env")
+	_ = godotenv.Load("prisma/.env")
 	log.SetFlags(0)
-	log.Printf("%sSeeding database...%s", ansi_blue, ansi_reset)
+	log.Printf("%sSeeding database...%s", ansiBlue, ansiReset)
 	if err := seed(context.Background()); err != nil {
-		log.Printf("%sfailed to seed database: %s%v%s", ansi_yellow, ansi_red, err, ansi_reset)
+		log.Printf("%sfailed to seed database: %s%v%s", ansiYellow, ansiRed, err, ansiReset)
 		os.Exit(1)
 	}
-	log.Printf("%sDatabase seeded.%s", ansi_green, ansi_reset)
+	log.Printf("%sDatabase seeded.%s", ansiGreen, ansiReset)
 }
 
 func seed(ctx context.Context) error {
@@ -119,7 +119,7 @@ func seed(ctx context.Context) error {
 
 		usersRealm := models.Realm{
 			Immutable: true,
-			Flags:     models.REALM_FLAGS_ALLOW_REGISTRATION,
+			Flags:     models.RealmFlagsAllowRegistration,
 			Name:      "users",
 			Title:     "Users",
 		}
@@ -163,17 +163,17 @@ func seed(ctx context.Context) error {
 		adminLogin := models.Login{
 			UserId:     adminUser.Id,
 			Immutable:  true,
-			Provider:   models.LOGIN_PROVIDER_FORM_PASSWORD,
+			Provider:   models.LoginProviderFormPassword,
 			Identifier: "admin",
 			Metadata:   map[string]string{},
 		}
-		if pwd, err := secure.RandString(16, base58_symbols); err != nil {
+		if pwd, err := secure.RandString(16, base58Chars); err != nil {
 			return err
 		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err != nil {
 			return err
 		} else {
 			adminLogin.Credential = sql.NullString{Valid: true, String: string(hp)}
-			log.Printf("%susing randomly generated password for admin user:        %s%s%s", ansi_blue, ansi_yellow, pwd, ansi_reset)
+			log.Printf("%susing randomly generated password for admin user:        %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
 		}
 		if _, err := tx.NewInsert().Model(&adminLogin).Exec(ctx); err != nil {
 			return err
@@ -194,19 +194,19 @@ func seed(ctx context.Context) error {
 			Immutable:   true,
 			Description: sql.NullString{Valid: true, String: "Web-based console client."},
 		}
-		if pwd, err := secure.RandString(16, base58_symbols); err != nil {
+		if pwd, err := secure.RandString(16, base58Chars); err != nil {
 			return err
 		} else {
 			consoleClient.SecretKey = pwd
-			log.Printf("%susing randomly generated secret key for console client:  %s%s%s", ansi_blue, ansi_yellow, pwd, ansi_reset)
+			log.Printf("%susing randomly generated secret key for console client:  %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
 		}
-		if pwd, err := secure.RandString(32, base58_symbols); err != nil {
+		if pwd, err := secure.RandString(32, base58Chars); err != nil {
 			return err
 		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err != nil {
 			return err
 		} else {
 			consoleClient.SecretCode = sql.NullString{Valid: true, String: string(hp)}
-			log.Printf("%susing randomly generated secret code for console client: %s%s%s", ansi_blue, ansi_yellow, pwd, ansi_reset)
+			log.Printf("%susing randomly generated secret code for console client: %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
 		}
 		if _, err := tx.NewInsert().Model(&consoleClient).Exec(ctx); err != nil {
 			return err
@@ -235,12 +235,12 @@ func seed(ctx context.Context) error {
 			{
 				UserId:     systemUser.Id,
 				SessionId:  chatSession.Id,
-				Permission: models.CHAT_MEMBER_PERMISSION_OWNER,
+				Permission: models.ChatMemberPermissionOwner,
 			},
 			{
 				UserId:     adminUser.Id,
 				SessionId:  chatSession.Id,
-				Permission: models.CHAT_MEMBER_PERMISSION_MEMBER,
+				Permission: models.ChatMemberPermissionMember,
 			},
 		}
 		if _, err := tx.NewInsert().Model(&chatMembers).Exec(ctx); err != nil {

@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	LOGIN_PROVIDER_FORM_PASSWORD = "FORM_PASSWORD"
-	LOGIN_PROVIDER_SMS_OTP_CODE  = "SMS_OTP_CODE"
+	LoginProviderFormPassword = "FORM_PASSWORD"
+	LoginProviderSmsOtpCode   = "SMS_OTP_CODE"
 )
 
 type Login struct {
@@ -35,7 +35,7 @@ type Login struct {
 	User *User `bun:"rel:belongs-to,join:user_id=id"`
 }
 
-func (m *Login) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *Login) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {

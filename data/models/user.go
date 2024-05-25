@@ -38,7 +38,7 @@ type User struct {
 	Creator *User    `bun:"rel:belongs-to,join:creator_id=id"`
 }
 
-func (m *User) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *User) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {

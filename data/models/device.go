@@ -23,7 +23,7 @@ type Device struct {
 	Metadata  map[string]string `bun:"metadata,json_use_number"`
 }
 
-func (m *Device) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *Device) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {

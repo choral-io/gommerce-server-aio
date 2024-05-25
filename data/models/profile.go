@@ -25,7 +25,7 @@ type Profile struct {
 	User *User `bun:"rel:belongs-to,join:id=id"`
 }
 
-func (m *Profile) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *Profile) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		m.CreatedAt = time.Now()

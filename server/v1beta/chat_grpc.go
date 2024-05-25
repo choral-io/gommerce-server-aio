@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	chats "github.com/choral-io/gommerce-protobuf-go/chats/v1beta"
-	gender_v1 "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
+	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-core/data"
@@ -64,13 +64,13 @@ func (s *chatsServiceServer) RegisterGatewayClient(ctx context.Context, mux *run
 	return chats.RegisterChatsServiceHandler(ctx, mux, conn)
 }
 
-func (s *chatsServiceServer) Authorize(ctx context.Context, procedure string) error {
-	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AUTH_SCHEMA_BEARER))
+func (s *chatsServiceServer) Authorize(ctx context.Context, _ string) error {
+	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBearer))
 }
 
 func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSessionsRequest) (*chats.ListSessionsResponse, error) {
 	user := secure.IdentityFromContext(ctx)
-	members := []models.ChatMember{}
+	var members []models.ChatMember
 	total, err := s.bdb.NewSelect().Model(&members).
 		Relation("Session").Relation("Session.Members").Relation("Session.Members.Profile").
 		Where("user_id = ?", user.Token().Subject()).Apply(data.WithPaging(req)).ScanAndCount(ctx)
@@ -112,7 +112,7 @@ func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSe
 				CreatedAt:   timestamppb.New(m.CreatedAt),
 				UpdatedAt:   sqlpb.FromNullTime(m.UpdatedAt),
 				Permission:  m.Permission,
-				Gender:      gender_v1.FromSqlNullString(m.Profile.Gender),
+				Gender:      gender.FromSqlNullString(m.Profile.Gender),
 				DisplayName: m.DisplayName.String,
 				AvatarUrl:   sqlpb.FromNullString(m.Profile.AvatarUrl),
 			}
@@ -177,7 +177,7 @@ func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.Des
 			CreatedAt:   timestamppb.New(m.CreatedAt),
 			UpdatedAt:   sqlpb.FromNullTime(m.UpdatedAt),
 			Permission:  m.Permission,
-			Gender:      gender_v1.FromSqlNullString(m.Profile.Gender),
+			Gender:      gender.FromSqlNullString(m.Profile.Gender),
 			DisplayName: m.DisplayName.String,
 			AvatarUrl:   sqlpb.FromNullString(m.Profile.AvatarUrl),
 		}
@@ -235,8 +235,8 @@ func (s *chatsServiceServer) SendRecord(ctx context.Context, req *chats.SendReco
 		Headers:   record.Headers,
 		Content:   record.Content,
 	}
-	data, _ := proto.Marshal(event)
-	if err := s.nsc.Publish(fmt.Sprintf("chat.records.s.%s", req.SessionId), data); err != nil {
+	bytes, _ := proto.Marshal(event)
+	if err := s.nsc.Publish(fmt.Sprintf("chat.records.s.%s", req.SessionId), bytes); err != nil {
 		s.logger.Error(ctx, "failed to publish chat record", "error", err)
 	}
 	return &chats.SendRecordResponse{
@@ -262,12 +262,14 @@ func (s *chatsServiceServer) WatchRecords(_ *chats.WatchRecordsRequest, srv chat
 		select {
 		case msg := <-csc:
 			record := &chats.Record{}
-			proto.Unmarshal(msg.Data, record)
-			srv.Send(&chats.WatchRecordsResponse{
-				Items: []*chats.Record{record},
-			})
+			if err := proto.Unmarshal(msg.Data, record); err != nil {
+				s.logger.Error(srv.Context(), "failed to unmarshal chat record", "error", err)
+			}
+			if err := srv.Send(&chats.WatchRecordsResponse{Items: []*chats.Record{record}}); err != nil {
+				s.logger.Error(srv.Context(), "failed to send chat records", "error", err)
+			}
 		case <-srv.Context().Done():
-			if err := srv.Context().Err(); err == context.Canceled {
+			if err := srv.Context().Err(); errors.Is(err, context.Canceled) {
 				return nil
 			} else {
 				return err

@@ -65,13 +65,13 @@ func (s *snowflakeServiceServer) RegisterGatewayClient(ctx context.Context, mux 
 	return utils.RegisterSequenceServiceHandler(ctx, mux, conn)
 }
 
-func (s *snowflakeServiceServer) NextHex(ctx context.Context, _ *utils.NextHexRequest) (*utils.NextHexResponse, error) {
+func (s *snowflakeServiceServer) NextHex(_ context.Context, _ *utils.NextHexRequest) (*utils.NextHexResponse, error) {
 	return &utils.NextHexResponse{
 		Value: s.idw.NextHex(),
 	}, nil
 }
 
-func (s *snowflakeServiceServer) NextInt64(ctx context.Context, _ *utils.NextInt64Request) (*utils.NextInt64Response, error) {
+func (s *snowflakeServiceServer) NextInt64(_ context.Context, _ *utils.NextInt64Request) (*utils.NextInt64Response, error) {
 	return &utils.NextInt64Response{
 		Value: s.idw.NextInt64(),
 	}, nil
@@ -93,9 +93,9 @@ func (s *passwordServiceServer) RegisterGatewayClient(ctx context.Context, mux *
 	return utils.RegisterPasswordServiceHandler(ctx, mux, conn)
 }
 
-func (p *passwordServiceServer) GeneratePassword(_ context.Context, req *utils.GeneratePasswordRequest) (*utils.GeneratePasswordResponse, error) {
+func (s *passwordServiceServer) GeneratePassword(_ context.Context, req *utils.GeneratePasswordRequest) (*utils.GeneratePasswordResponse, error) {
 	if req.Symbols == "" {
-		req.Symbols = secure.DEFAULT_PASSWORD_SYMBOLS
+		req.Symbols = secure.DefaultPasswordSymbols
 	}
 	if req.Length <= 0 {
 		req.Length = 16
@@ -109,9 +109,9 @@ func (p *passwordServiceServer) GeneratePassword(_ context.Context, req *utils.G
 	}, nil
 }
 
-func (p *passwordServiceServer) HashPassword(_ context.Context, req *utils.HashPasswordRequest) (*utils.HashPasswordResponse, error) {
+func (s *passwordServiceServer) HashPassword(_ context.Context, req *utils.HashPasswordRequest) (*utils.HashPasswordResponse, error) {
 	if len(req.Value) == 0 {
-		err := errors.New("provided password msut not be empty")
+		err := errors.New("provided password must not be empty")
 		return nil, err
 	}
 	if value, err := bcrypt.GenerateFromPassword([]byte(req.Value), bcrypt.DefaultCost); err == nil {
@@ -123,12 +123,12 @@ func (p *passwordServiceServer) HashPassword(_ context.Context, req *utils.HashP
 	}
 }
 
-func (p *passwordServiceServer) ValidatePassword(_ context.Context, req *utils.ValidatePasswordRequest) (*utils.ValidatePasswordResponse, error) {
+func (s *passwordServiceServer) ValidatePassword(_ context.Context, req *utils.ValidatePasswordRequest) (*utils.ValidatePasswordResponse, error) {
 	if len(req.HashedPassword) == 0 {
-		return nil, errors.New("provided password msut not be empty")
+		return nil, errors.New("provided password must not be empty")
 	}
 	if len(req.ProvidedPassword) == 0 {
-		return nil, errors.New("hashed password msut not be empty")
+		return nil, errors.New("hashed password must not be empty")
 	}
 	err := bcrypt.CompareHashAndPassword([]byte(req.HashedPassword), []byte(req.ProvidedPassword))
 	return &utils.ValidatePasswordResponse{
@@ -158,9 +158,9 @@ func (s *dateTimeServiceServer) RegisterGatewayClient(ctx context.Context, mux *
 	return utils.RegisterDateTimeServiceHandler(ctx, mux, conn)
 }
 
-func (d *dateTimeServiceServer) GetDBNow(ctx context.Context, _ *utils.GetDBNowRequest) (*utils.GetDBNowResponse, error) {
+func (s *dateTimeServiceServer) GetDBNow(ctx context.Context, _ *utils.GetDBNowRequest) (*utils.GetDBNowResponse, error) {
 	var now time.Time
-	if err := d.bdb.QueryRowContext(ctx, "SELECT NOW()").Scan(&now); err != nil {
+	if err := s.bdb.QueryRowContext(ctx, "SELECT NOW()").Scan(&now); err != nil {
 		return nil, err
 	}
 	return &utils.GetDBNowResponse{
@@ -168,8 +168,8 @@ func (d *dateTimeServiceServer) GetDBNow(ctx context.Context, _ *utils.GetDBNowR
 	}, nil
 }
 
-func (d *dateTimeServiceServer) GetRedisNow(ctx context.Context, _ *utils.GetRedisNowRequest) (*utils.GetRedisNowResponse, error) {
-	strs, err := d.rdb.Do(ctx, d.rdb.B().Time().Build()).AsStrSlice()
+func (s *dateTimeServiceServer) GetRedisNow(ctx context.Context, _ *utils.GetRedisNowRequest) (*utils.GetRedisNowResponse, error) {
+	strs, err := s.rdb.Do(ctx, s.rdb.B().Time().Build()).AsStrSlice()
 	if err != nil {
 		return nil, err
 	}
@@ -180,19 +180,19 @@ func (d *dateTimeServiceServer) GetRedisNow(ctx context.Context, _ *utils.GetRed
 	}, nil
 }
 
-func (d *dateTimeServiceServer) GetUTCNow(context.Context, *utils.GetUTCNowRequest) (*utils.GetUTCNowResponse, error) {
+func (s *dateTimeServiceServer) GetUTCNow(context.Context, *utils.GetUTCNowRequest) (*utils.GetUTCNowResponse, error) {
 	return &utils.GetUTCNowResponse{
 		Value: tsoffset.Now().UTC(),
 	}, nil
 }
 
-func (d *dateTimeServiceServer) GetLocalNow(context.Context, *utils.GetLocalNowRequest) (*utils.GetLocalNowResponse, error) {
+func (s *dateTimeServiceServer) GetLocalNow(context.Context, *utils.GetLocalNowRequest) (*utils.GetLocalNowResponse, error) {
 	return &utils.GetLocalNowResponse{
 		Value: tsoffset.Now().Local(),
 	}, nil
 }
 
-func (d *dateTimeServiceServer) WatchLocalNow(_ *utils.WatchLocalNowRequest, srv utils.DateTimeService_WatchLocalNowServer) error {
+func (s *dateTimeServiceServer) WatchLocalNow(_ *utils.WatchLocalNowRequest, srv utils.DateTimeService_WatchLocalNowServer) error {
 	if err := srv.Send(&utils.WatchLocalNowResponse{Value: tsoffset.Now()}); err != nil {
 		return err
 	}

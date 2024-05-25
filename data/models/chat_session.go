@@ -27,7 +27,7 @@ type ChatSession struct {
 	Members []*ChatMember `bun:"rel:has-many,join:id=session_id"`
 }
 
-func (m *ChatSession) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *ChatSession) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {

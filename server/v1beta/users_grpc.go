@@ -40,10 +40,10 @@ func (s *usersServiceServer) RegisterGatewayClient(ctx context.Context, mux *run
 
 func (s *usersServiceServer) Authorize(ctx context.Context, procedure string) error {
 	if procedure == iam.UsersService_GetIdentity_FullMethodName {
-		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AUTH_SCHEMA_BEARER))
+		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBearer))
 	}
 	if procedure == iam.UsersService_ListUsers_FullMethodName {
-		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireRealm(REALM_ADMIN))
+		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireRealm(RealmAdmin))
 	}
 	return nil
 }
@@ -82,7 +82,7 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		user.Attributes["profile.gender"] = profile.Gender.String
 	}
 	login := models.Login{
-		Provider:   LOGIN_PROVIDER_FORM_PASSWORD,
+		Provider:   LoginProviderFormPassword,
 		Identifier: req.Username,
 		Metadata:   map[string]string{},
 	}
@@ -136,7 +136,7 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 	return res, nil
 }
 
-func (s *usersServiceServer) GetIdentity(ctx context.Context, req *iam.GetIdentityRequest) (*iam.GetIdentityResponse, error) {
+func (s *usersServiceServer) GetIdentity(ctx context.Context, _ *iam.GetIdentityRequest) (*iam.GetIdentityResponse, error) {
 	user := models.User{
 		Id: secure.IdentityFromContext(ctx).Token().Subject(),
 	}

@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	CHAT_MEMBER_PERMISSION_OWNER  int64 = 0b_0000_0001_0000_0011
-	CHAT_MEMBER_PERMISSION_ADMIN  int64 = 0b_0000_0001_0000_0010
-	CHAT_MEMBER_PERMISSION_MEMBER int64 = 0b_0000_0001_0000_0000
+	ChatMemberPermissionOwner  int64 = 0b_0000_0001_0000_0011
+	ChatMemberPermissionAdmin  int64 = 0b_0000_0001_0000_0010
+	ChatMemberPermissionMember int64 = 0b_0000_0001_0000_0000
 )
 
 type ChatMember struct {
@@ -32,7 +32,7 @@ type ChatMember struct {
 	Session *ChatSession `bun:"rel:belongs-to,join:session_id=id"`
 }
 
-func (m *ChatMember) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *ChatMember) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		m.CreatedAt = time.Now()

@@ -25,7 +25,7 @@ type Client struct {
 	Description sql.NullString `bun:"description"`
 }
 
-func (m *Client) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *Client) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {

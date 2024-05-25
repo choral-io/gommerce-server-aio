@@ -27,7 +27,7 @@ type Role struct {
 	Realm *Realm `bun:"rel:belongs-to,join:realm_id=id"`
 }
 
-func (m *Role) BeforeAppendModel(ctx context.Context, query bun.Query) error {
+func (m *Role) BeforeAppendModel(_ context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {

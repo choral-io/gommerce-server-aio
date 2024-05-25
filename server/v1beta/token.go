@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	LOGIN_PROVIDER_FORM_PASSWORD = models.LOGIN_PROVIDER_FORM_PASSWORD
-	LOGIN_PROVIDER_SMS_OTP_CODE  = models.LOGIN_PROVIDER_SMS_OTP_CODE
+	LoginProviderFormPassword = models.LoginProviderFormPassword
+	LoginProviderSmsOtpCode   = models.LoginProviderSmsOtpCode
 )
 
 type LoginProvider interface {
@@ -29,13 +29,13 @@ func NewFormPasswordLoginProvider(bdb bun.IDB) LoginProvider {
 }
 
 func (p *formPasswordLoginProvider) Name() string {
-	return LOGIN_PROVIDER_FORM_PASSWORD
+	return LoginProviderFormPassword
 }
 
-func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
+func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, _ string, _ []string) (*models.Login, error) {
 	login := models.Login{}
 	if err := p.bdb.NewSelect().Model(&login).
-		Where(`"login"."provider" = ?`, LOGIN_PROVIDER_FORM_PASSWORD).
+		Where(`"login"."provider" = ?`, p.Name()).
 		Where(`"login"."identifier" = ?`, username).
 		Where(`"user"."realm_id" = ?`, realmId).
 		Relation("User").Scan(ctx); err != nil {
@@ -57,9 +57,9 @@ func NewSMSOTPCodeLoginProvider() LoginProvider {
 }
 
 func (p *smsOTPCodeLoginProvider) Name() string {
-	return LOGIN_PROVIDER_SMS_OTP_CODE
+	return LoginProviderSmsOtpCode
 }
 
-func (p *smsOTPCodeLoginProvider) Login(ctx context.Context, realmId, username, password, idToken string, scope []string) (*models.Login, error) {
-	return nil, fmt.Errorf("login provider '%s' not implemented", LOGIN_PROVIDER_SMS_OTP_CODE)
+func (p *smsOTPCodeLoginProvider) Login(context.Context, string, string, string, string, []string) (*models.Login, error) {
+	return nil, fmt.Errorf("login provider '%s' not implemented", p.Name())
 }

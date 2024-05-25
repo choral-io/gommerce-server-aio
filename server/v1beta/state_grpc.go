@@ -2,6 +2,7 @@ package v1beta
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -14,8 +15,8 @@ import (
 )
 
 const (
-	TTL_IN_SECONDS_KEY   = "ttlInSeconds"
-	STORAGE_KEY_TEMPLATE = "state:store:%s:%s"
+	TtlInSecondsKey    = "ttlInSeconds"
+	StorageKeyTemplate = "state:store:%s:%s"
 )
 
 type stateStoreServiceServer struct {
@@ -38,16 +39,16 @@ func (s *stateStoreServiceServer) RegisterGatewayClient(ctx context.Context, mux
 	return state.RegisterStateStoreServiceHandler(ctx, mux, conn)
 }
 
-func (s *stateStoreServiceServer) Authorize(ctx context.Context, procedure string) error {
-	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AUTH_SCHEMA_BASIC))
+func (s *stateStoreServiceServer) Authorize(ctx context.Context, _ string) error {
+	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBasic))
 }
 
 func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state.GetStateRequest) (*state.GetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
-	key := fmt.Sprintf(STORAGE_KEY_TEMPLATE, sub, req.GetKey())
+	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
 	cmd := s.rdb.B().Get().Key(key)
 	data, err := s.rdb.Do(ctx, cmd.Build()).AsBytes()
-	if err != nil && err != rueidis.Nil {
+	if err != nil && !errors.Is(err, rueidis.Nil) {
 		return nil, err
 	}
 	return &state.GetStateResponse{
@@ -57,12 +58,12 @@ func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state.GetSt
 
 func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state.SetStateRequest) (*state.SetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
-	key := fmt.Sprintf(STORAGE_KEY_TEMPLATE, sub, req.GetKey())
+	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
 	cmd := s.rdb.B().Set().Key(key).Value(rueidis.BinaryString(req.GetData()))
-	if val, ok := req.Metadata[TTL_IN_SECONDS_KEY]; ok {
+	if val, ok := req.Metadata[TtlInSecondsKey]; ok {
 		ttl, err := strconv.ParseInt(val, 10, 0)
 		if err != nil {
-			return nil, validator.NewErrorWithCause("metadata."+TTL_IN_SECONDS_KEY, "metadata.ttlInSeconds must be an integer", err)
+			return nil, validator.NewErrorWithCause("metadata."+TtlInSecondsKey, "metadata.ttlInSeconds must be an integer", err)
 		}
 		cmd.ExSeconds(ttl)
 	}
@@ -75,7 +76,7 @@ func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state.SetSt
 
 func (s *stateStoreServiceServer) DelState(ctx context.Context, req *state.DelStateRequest) (*state.DelStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
-	key := fmt.Sprintf(STORAGE_KEY_TEMPLATE, sub, req.GetKey())
+	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
 	cmd := s.rdb.B().Del().Key(key)
 	err := s.rdb.Do(ctx, cmd.Build()).Error()
 	if err != nil {

@@ -74,7 +74,7 @@ func (s *BasicTokenStore) Revoke(string) (*secure.Token, error) {
 
 func NewServerAuthorizer(uts secure.TokenStore, cts *BasicTokenStore) *secure.ServerAuthorizer { // create server authorizer
 	return secure.NewServerAuthorizer(map[string]secure.TokenStore{
-		secure.AUTH_SCHEMA_BEARER: uts,
-		secure.AUTH_SCHEMA_BASIC:  cts,
+		secure.AuthSchemaBearer: uts,
+		secure.AuthSchemaBasic:  cts,
 	})
 }
