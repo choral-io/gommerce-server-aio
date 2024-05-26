@@ -20,12 +20,12 @@ import (
 )
 
 const (
-	ansiReset   = "\033[0m"
-	ansiRed     = "\033[31m"
-	ansiGreen   = "\033[32m"
-	ansiYellow  = "\033[33m"
-	ansiBlue    = "\033[34m"
-	base58Chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	ansiReset  = "\033[0m"
+	ansiRed    = "\033[31m"
+	ansiGreen  = "\033[32m"
+	ansiYellow = "\033[33m"
+	ansiBlue   = "\033[34m"
+	b58Chars   = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 )
 
 func main() {
@@ -167,7 +167,7 @@ func seed(ctx context.Context) error {
 			Identifier: "admin",
 			Metadata:   map[string]string{},
 		}
-		if pwd, err := secure.RandString(16, base58Chars); err != nil {
+		if pwd, err := secure.RandString(16, b58Chars); err != nil {
 			return err
 		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err != nil {
 			return err
@@ -194,13 +194,13 @@ func seed(ctx context.Context) error {
 			Immutable:   true,
 			Description: sql.NullString{Valid: true, String: "Web-based console client."},
 		}
-		if pwd, err := secure.RandString(16, base58Chars); err != nil {
+		if pwd, err := secure.RandString(16, b58Chars); err != nil {
 			return err
 		} else {
 			consoleClient.SecretKey = pwd
 			log.Printf("%susing randomly generated secret key for console client:  %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
 		}
-		if pwd, err := secure.RandString(32, base58Chars); err != nil {
+		if pwd, err := secure.RandString(32, b58Chars); err != nil {
 			return err
 		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err != nil {
 			return err
