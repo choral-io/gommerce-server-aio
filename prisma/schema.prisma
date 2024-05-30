@@ -21,38 +21,38 @@ model Realm {
 }
 
 model User {
-  id             String       @id(map: "pk_users") @db.VarChar(16)
-  realmId        String       @map("realm_id") @db.VarChar(16)
-  creatorId      String?      @map("creator_id") @db.VarChar(16)
-  disabled       Boolean      @default(false)
-  approved       Boolean      @default(false)
-  verified       Boolean      @default(false)
-  immutable      Boolean      @default(false)
-  createdAt      DateTime     @map("created_at") @db.Timestamp(6)
-  updatedAt      DateTime?    @map("updated_at") @db.Timestamp(6)
-  deletedAt      DateTime?    @map("deleted_at") @db.Timestamp(6)
-  expiresAt      DateTime?    @map("expires_at") @db.Timestamp(6)
-  firstLoginTime DateTime?    @map("first_login_time") @db.Timestamp(6)
-  lastActiveTime DateTime?    @map("last_active_time") @db.Timestamp(6)
+  id             String        @id(map: "pk_users") @db.VarChar(16)
+  realmId        String        @map("realm_id") @db.VarChar(16)
+  creatorId      String?       @map("creator_id") @db.VarChar(16)
+  disabled       Boolean       @default(false)
+  approved       Boolean       @default(false)
+  verified       Boolean       @default(false)
+  immutable      Boolean       @default(false)
+  createdAt      DateTime      @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime?     @map("updated_at") @db.Timestamp(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamp(6)
+  expiresAt      DateTime?     @map("expires_at") @db.Timestamp(6)
+  firstLoginTime DateTime?     @map("first_login_time") @db.Timestamp(6)
+  lastActiveTime DateTime?     @map("last_active_time") @db.Timestamp(6)
   flags          BigInt
   attributes     Json?
-  phoneNumber    String?      @map("phone_number") @db.VarChar(64)
-  emailAddress   String?      @map("email_address") @db.VarChar(128)
-  description    String?      @db.VarChar(255)
+  phoneNumber    String?       @map("phone_number") @db.VarChar(64)
+  emailAddress   String?       @map("email_address") @db.VarChar(128)
+  description    String?       @db.VarChar(255)
+  addresses      Address[]
   chatMembers    ChatMember[]
   chatRecords    ChatRecord[]
   clientUsers    ClientUser[]
-  contacts       Contact[]
   devices        Device[]
   logins         Login[]
-  merchants      Merchant[]
+  participants   Participant[]
   profile        Profile?
   reviews        Review[]
   roleUsers      RoleUser[]
   userDevices    UserDevice[]
-  realm          Realm        @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_users_realms_realm_id")
-  creator        User?        @relation("user_creator", fields: [creatorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_users_creator_id")
-  createdUsers   User[]       @relation("user_creator")
+  realm          Realm         @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_users_realms_realm_id")
+  creator        User?         @relation("user_creator", fields: [creatorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_users_creator_id")
+  createdUsers   User[]        @relation("user_creator")
 
   @@unique([realmId, emailAddress], map: "ix_users_realm_id_email_address")
   @@unique([realmId, phoneNumber], map: "ix_users_realm_id_phone_number")
@@ -183,28 +183,28 @@ model UserDevice {
   @@map("user_devices")
 }
 
-model Merchant {
-  id            String    @id(map: "pk_merchants") @db.VarChar(16)
+model Participant {
+  id            String    @id(map: "pk_participants") @db.VarChar(16)
   ownerId       String?   @map("owner_id") @db.VarChar(16)
   disabled      Boolean   @default(false)
   immutable     Boolean   @default(false)
   createdAt     DateTime  @map("created_at") @db.Timestamp(6)
   updatedAt     DateTime  @map("updated_at") @db.Timestamp(6)
   expiresAt     DateTime? @map("expires_at") @db.Timestamp(6)
-  commonName    String    @unique(map: "ix_merchants_common_name") @map("common_name") @db.VarChar(128)
-  shortName     String    @unique(map: "ix_merchants_short_name") @map("short_name") @db.VarChar(64)
+  commonName    String    @unique(map: "ix_participants_common_name") @map("common_name") @db.VarChar(128)
+  shortName     String    @unique(map: "ix_participants_short_name") @map("short_name") @db.VarChar(64)
   licenseType   String    @map("license_type") @db.VarChar(32)
   licenseCode   String?   @map("license_code") @db.VarChar(64)
   accounts      Account[]
-  owner         User?     @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_merchants_users_owner_id")
   orders        Order[]
+  owner         User?     @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_participants_users_owner_id")
   ownerPayments Payment[] @relation("payment_owner")
-  payerPayments Payment[] @relation("payment_payer")
   payeePayments Payment[] @relation("payment_payee")
+  payerPayments Payment[] @relation("payment_payer")
   shops         Shop[]
 
-  @@index([ownerId], map: "ix_merchants_owner_id")
-  @@map("merchants")
+  @@index([ownerId], map: "ix_participants_owner_id")
+  @@map("participants")
 }
 
 model Account {
@@ -220,7 +220,7 @@ model Account {
   currency       String         @db.VarChar(32)
   balance        Decimal?       @db.Decimal(16, 6)
   accountEntries AccountEntry[]
-  holder         Merchant       @relation(fields: [holderId], references: [id], onUpdate: Restrict, map: "fk_accounts_merchants_holder_id")
+  holder         Participant    @relation(fields: [holderId], references: [id], onUpdate: Restrict, map: "fk_accounts_participants_holder_id")
 
   @@index([holderId], map: "ix_accounts_holder_id")
   @@map("accounts")
@@ -262,9 +262,9 @@ model Payment {
   comment        String?        @db.VarChar(128)
   accountEntries AccountEntry[]
   orderPayments  OrderPayment[]
-  owner          Merchant       @relation("payment_owner", fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_owner_id")
-  payer          Merchant?      @relation("payment_payer", fields: [payerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_payments_merchants_payer_id")
-  payee          Merchant       @relation("payment_payee", fields: [payeeId], references: [id], onUpdate: Restrict, map: "fk_payments_merchants_payee_id")
+  owner          Participant    @relation("payment_owner", fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_payments_participants_owner_id")
+  payee          Participant    @relation("payment_payee", fields: [payeeId], references: [id], onUpdate: Restrict, map: "fk_payments_participants_payee_id")
+  payer          Participant?   @relation("payment_payer", fields: [payerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_payments_participants_payer_id")
 
   @@index([ownerId], map: "ix_payments_owner_id")
   @@index([payerId], map: "ix_payments_payer_id")
@@ -282,7 +282,7 @@ model Region {
   commonCode  String      @unique(map: "ix_regions_common_code") @map("common_code") @db.VarChar(64)
   commonName  String      @map("common_name") @db.VarChar(128)
   summary     String?     @db.VarChar(255)
-  contacts    Contact[]
+  addresses   Address[]
   deliveries  Delivery[]
   inventories Inventory[]
   parent      Region?     @relation("region_parent", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_regions_regions_parent_id")
@@ -312,19 +312,19 @@ model Catalog {
 }
 
 model Shop {
-  id         String    @id(map: "pk_shops") @db.VarChar(16)
-  holderId   String    @map("holder_id") @db.VarChar(16)
-  disabled   Boolean   @default(false)
-  immutable  Boolean   @default(false)
-  createdAt  DateTime  @map("created_at") @db.Timestamp(6)
-  updatedAt  DateTime  @map("updated_at") @db.Timestamp(6)
-  expiresAt  DateTime? @map("expires_at") @db.Timestamp(6)
-  validTime  DateTime? @map("valid_time") @db.Timestamp(6)
-  commonName String    @unique(map: "ix_shops_common_name") @map("common_name") @db.VarChar(128)
-  shortName  String?   @unique(map: "ix_shops_short_name") @map("short_name") @db.VarChar(64)
+  id         String      @id(map: "pk_shops") @db.VarChar(16)
+  holderId   String      @map("holder_id") @db.VarChar(16)
+  disabled   Boolean     @default(false)
+  immutable  Boolean     @default(false)
+  createdAt  DateTime    @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime    @map("updated_at") @db.Timestamp(6)
+  expiresAt  DateTime?   @map("expires_at") @db.Timestamp(6)
+  validTime  DateTime?   @map("valid_time") @db.Timestamp(6)
+  commonName String      @unique(map: "ix_shops_common_name") @map("common_name") @db.VarChar(128)
+  shortName  String?     @unique(map: "ix_shops_short_name") @map("short_name") @db.VarChar(64)
   orders     Order[]
   products   Product[]
-  holder     Merchant  @relation(fields: [holderId], references: [id], onUpdate: Restrict, map: "fk_shops_merchants_holder_id")
+  holder     Participant @relation(fields: [holderId], references: [id], onUpdate: Restrict, map: "fk_shops_participants_holder_id")
 
   @@index([holderId], map: "ix_shops_holder_id")
   @@map("shops")
@@ -409,34 +409,35 @@ model CategoryProduct {
   @@map("category_products")
 }
 
-model Contact {
-  id           String   @id(map: "pk_contacts") @db.VarChar(16)
+model Address {
+  id           String   @id(map: "pk_addresses") @db.VarChar(16)
   ownerId      String   @map("owner_id") @db.VarChar(16)
   regionId     String   @map("region_id") @db.VarChar(16)
   disabled     Boolean  @default(false)
+  archived     Boolean  @default(false)
   createdAt    DateTime @map("created_at") @db.Timestamp(6)
   updatedAt    DateTime @map("updated_at") @db.Timestamp(6)
   preferred    Boolean  @default(false)
   summary      String   @db.VarChar(255)
-  address      String   @db.VarChar(255)
+  details      String   @db.VarChar(255)
   postCode     String?  @map("post_code") @db.VarChar(32)
-  fullName     String   @map("full_name") @db.VarChar(128)
+  contactName  String   @map("contact_name") @db.VarChar(128)
   emailAddress String?  @map("email_address") @db.VarChar(128)
   phoneNumber  String?  @map("phone_number") @db.VarChar(128)
-  region       Region   @relation(fields: [regionId], references: [id], onUpdate: Restrict, map: "fk_contacts_regions_region_id")
-  user         User     @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_contacts_users_owner_id")
+  region       Region   @relation(fields: [regionId], references: [id], onUpdate: Restrict, map: "fk_addresses_regions_region_id")
+  user         User     @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_addresses_users_owner_id")
   orders       Order[]
 
-  @@index([ownerId], map: "ix_contacts_owner_id")
-  @@index([regionId], map: "ix_contacts_region_id")
-  @@map("contacts")
+  @@index([ownerId], map: "ix_addresses_owner_id")
+  @@index([regionId], map: "ix_addresses_region_id")
+  @@map("addresses")
 }
 
 model Order {
   id            String         @id(map: "pk_orders") @db.VarChar(16)
   shopId        String         @map("shop_id") @db.VarChar(16)
   ownerId       String         @map("owner_id") @db.VarChar(16)
-  contactId     String?        @map("contact_id") @db.VarChar(16)
+  addressId     String?        @map("address_id") @db.VarChar(16)
   createdAt     DateTime       @map("created_at") @db.Timestamp(6)
   updatedAt     DateTime       @map("updated_at") @db.Timestamp(6)
   expiresAt     DateTime?      @map("expires_at") @db.Timestamp(6)
@@ -448,11 +449,11 @@ model Order {
   snapshot      Json
   orderItems    OrderItem[]
   orderPayments OrderPayment[]
-  contact       Contact?       @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_orders_contacts_contact_id")
+  Address       Address?       @relation(fields: [addressId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_orders_addresses_address_id")
   shop          Shop           @relation(fields: [shopId], references: [id], onUpdate: Restrict, map: "fk_orders_shops_shop_id")
-  owner         Merchant       @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_orders_users_owner_id")
+  owner         Participant    @relation(fields: [ownerId], references: [id], onUpdate: Restrict, map: "fk_orders_users_owner_id")
 
-  @@index([contactId], map: "ix_orders_contact_id")
+  @@index([addressId], map: "ix_orders_address_id")
   @@index([ownerId], map: "ix_orders_owner_id")
   @@index([shopId], map: "ix_orders_shop_id")
   @@map("orders")
@@ -504,8 +505,8 @@ model Delivery {
   updatedAt    DateTime    @map("updated_at") @db.Timestamp(6)
   status       String      @db.VarChar(32)
   summary      String      @db.VarChar(255)
-  address      String      @db.VarChar(255)
-  fullName     String      @map("full_name") @db.VarChar(128)
+  details      String      @db.VarChar(255)
+  contactName  String      @map("contact_name") @db.VarChar(128)
   emailAddress String?     @map("email_address") @db.VarChar(128)
   phoneNumber  String?     @map("phone_number") @db.VarChar(128)
   providerCode String?     @map("provider_code") @db.VarChar(64)

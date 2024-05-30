@@ -206,7 +206,7 @@ func (s *chatsServiceServer) ReadSession(ctx context.Context, req *chats.ReadSes
 	userId := secure.IdentityFromContext(ctx).Token().Subject()
 	if _, err := s.bdb.NewUpdate().
 		Model((*models.ChatMember)(nil)).
-		Set("read_cursor = ?", sqlpb.ToNullString(req.ReadCursor)).
+		Set("read_cursor = ?", sqlpb.ToNullString(req.Cursor)).
 		Where("session_id = ? AND user_id = ?", req.SessionId, userId).
 		Exec(ctx); err != nil {
 		return nil, err
@@ -242,6 +242,33 @@ func (s *chatsServiceServer) SendRecord(ctx context.Context, req *chats.SendReco
 	return &chats.SendRecordResponse{
 		Id: event.Id,
 	}, nil
+}
+
+func (s *chatsServiceServer) ListRecords(ctx context.Context, req *chats.ListRecordsRequest) (*chats.ListRecordsResponse, error) {
+	records := make([]models.ChatRecord, 0)
+	query := s.bdb.NewSelect().Model(&records)
+	if req.SessionId.GetValue() != "" {
+		query.Where("session_id = ?", req.SessionId.GetValue())
+	}
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+	res := &chats.ListRecordsResponse{
+		Items: make([]*chats.Record, len(records)),
+	}
+	for i, r := range records {
+		res.Items[i] = &chats.Record{
+			Id:        r.Id,
+			SessionId: r.SessionId,
+			CreatorId: r.CreatorId,
+			CreatedAt: timestamppb.New(r.CreatedAt),
+			UpdatedAt: sqlpb.FromNullTime(r.UpdatedAt),
+			Version:   r.Version,
+			Headers:   r.Headers,
+			Content:   r.Content,
+		}
+	}
+	return res, nil
 }
 
 func (s *chatsServiceServer) WatchRecords(_ *chats.WatchRecordsRequest, srv chats.ChatsService_WatchRecordsServer) error {
