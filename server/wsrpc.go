@@ -1,5 +1,5 @@
 package server
 
 import (
-	_ "nhooyr.io/websocket"
+	_ "github.com/coder/websocket"
 )
