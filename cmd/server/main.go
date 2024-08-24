@@ -48,19 +48,19 @@ func main() {
 	_ = os.Setenv("GOMMERCE_ENVIRONMENT", env) // prevent .env files from overriding it
 	fx.New(
 		fx.Provide(config.LoadYamlConfig, config.ExtractSections), // load and extract config sections
-		fx.Provide(logging.NewLogger),                             // create logger
-		fx.Provide(otel.NewServerResource),                        // create server resource for opentelemetry
-		fx.Provide(otel.NewTracerProvider),                        // create tracer provider for opentelemetry
-		fx.Provide(otel.NewMeterProvider),                         // create meter provider for opentelemetry
-		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // create redis client and redis seq
-		fx.Provide(data.NewIdWorker),                              // create id worker
-		fx.Provide(data.NewBunDB),                                 // create bun db
-		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // create token stores
-		fx.Provide(srv.NewServerAuthorizer),                       // create server authorizer
-		fx.Provide(srv.NewSelectorMatcher),                        // create selector matcher
-		fx.Provide(server.NewHTTPServer),                          // create http server
-		fx.Provide(events.NewNATSConn),                            // create nats connection
-		fx.Provide(srv1b.NewObjectStoreService),                   // create object store service
+		fx.Provide(logging.NewLogger),                             // provide logger
+		fx.Provide(otel.NewServerResource),                        // provide server resource for opentelemetry
+		fx.Provide(otel.NewTracerProvider),                        // provide tracer provider for opentelemetry
+		fx.Provide(otel.NewMeterProvider),                         // provide meter provider for opentelemetry
+		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // provide redis client and redis seq
+		fx.Provide(data.NewIdWorker),                              // provide id worker
+		fx.Provide(data.NewBunDB),                                 // provide bun db
+		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // provide token stores
+		fx.Provide(srv.NewServerAuthorizer),                       // provide server authorizer
+		fx.Provide(srv.NewSelectorMatcher),                        // provide selector matcher
+		fx.Provide(server.NewHTTPServer),                          // provide http server
+		fx.Provide(events.NewNATSConn),                            // provide nats connection
+		fx.Provide(srv1b.NewObjectStoreService),                   // provide object store service
 		fx.Provide( // register grpc servers
 			fx.Annotate(server.NewHealthServiceServer, grpcServersAnns...),
 			fx.Annotate(srv1.NewSequenceServiceServer, grpcServersAnns...),
