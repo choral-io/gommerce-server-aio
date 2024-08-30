@@ -13,19 +13,19 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0
 	github.com/joho/godotenv v1.5.1
-	github.com/minio/minio-go/v7 v7.0.75
+	github.com/minio/minio-go/v7 v7.0.76
 	github.com/nats-io/nats.go v1.37.0
-	github.com/redis/rueidis v1.0.44
-	github.com/uptrace/bun v1.2.1
-	github.com/uptrace/bun/dialect/mssqldialect v1.2.1
-	github.com/uptrace/bun/dialect/mysqldialect v1.2.1
-	github.com/uptrace/bun/dialect/pgdialect v1.2.1
-	github.com/uptrace/bun/driver/pgdriver v1.2.1
+	github.com/redis/rueidis v1.0.45
+	github.com/uptrace/bun v1.2.2
+	github.com/uptrace/bun/dialect/mssqldialect v1.2.2
+	github.com/uptrace/bun/dialect/mysqldialect v1.2.2
+	github.com/uptrace/bun/dialect/pgdialect v1.2.2
+	github.com/uptrace/bun/driver/pgdriver v1.2.2
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/trace v1.29.0
 	go.uber.org/fx v1.22.2
 	golang.org/x/crypto v0.26.0
-	google.golang.org/grpc v1.65.0
+	google.golang.org/grpc v1.66.0
 	google.golang.org/protobuf v1.34.2
 )
 
@@ -46,12 +46,13 @@ require (
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
-	github.com/redis/rueidis/rueidisotel v1.0.44 // indirect
-	github.com/rs/cors v1.11.0 // indirect
-	github.com/rs/xid v1.5.0 // indirect
+	github.com/puzpuzpuz/xsync/v3 v3.4.0 // indirect
+	github.com/redis/rueidis/rueidisotel v1.0.45 // indirect
+	github.com/rs/cors v1.11.1 // indirect
+	github.com/rs/xid v1.6.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/uptrace/bun/extra/bunotel v1.2.1 // indirect
+	github.com/uptrace/bun/extra/bunotel v1.2.2 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -74,8 +75,8 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240823204242-4ba0660f739c // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240823204242-4ba0660f739c // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240827150818-7e3bb234dfed // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )
