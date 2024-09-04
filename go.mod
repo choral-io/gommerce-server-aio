@@ -16,11 +16,11 @@ require (
 	github.com/minio/minio-go/v7 v7.0.76
 	github.com/nats-io/nats.go v1.37.0
 	github.com/redis/rueidis v1.0.45
-	github.com/uptrace/bun v1.2.2
-	github.com/uptrace/bun/dialect/mssqldialect v1.2.2
-	github.com/uptrace/bun/dialect/mysqldialect v1.2.2
-	github.com/uptrace/bun/dialect/pgdialect v1.2.2
-	github.com/uptrace/bun/driver/pgdriver v1.2.2
+	github.com/uptrace/bun v1.2.3
+	github.com/uptrace/bun/dialect/mssqldialect v1.2.3
+	github.com/uptrace/bun/dialect/mysqldialect v1.2.3
+	github.com/uptrace/bun/dialect/pgdialect v1.2.3
+	github.com/uptrace/bun/driver/pgdriver v1.2.3
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/trace v1.29.0
 	go.uber.org/fx v1.22.2
@@ -52,7 +52,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/uptrace/bun/extra/bunotel v1.2.2 // indirect
+	github.com/uptrace/bun/extra/bunotel v1.2.3 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -73,10 +73,10 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240827150818-7e3bb234dfed // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
+	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )
