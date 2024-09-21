@@ -15,7 +15,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.76
 	github.com/nats-io/nats.go v1.37.0
-	github.com/redis/rueidis v1.0.45
+	github.com/redis/rueidis v1.0.46
 	github.com/uptrace/bun v1.2.3
 	github.com/uptrace/bun/dialect/mssqldialect v1.2.3
 	github.com/uptrace/bun/dialect/mysqldialect v1.2.3
@@ -25,7 +25,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.30.0
 	go.uber.org/fx v1.22.2
 	golang.org/x/crypto v0.27.0
-	google.golang.org/grpc v1.66.2
+	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.34.2
 )
 
@@ -47,7 +47,7 @@ require (
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.4.0 // indirect
-	github.com/redis/rueidis/rueidisotel v1.0.45 // indirect
+	github.com/redis/rueidis/rueidisotel v1.0.46 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
