@@ -15,7 +15,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.77
 	github.com/nats-io/nats.go v1.37.0
-	github.com/redis/rueidis v1.0.46
+	github.com/redis/rueidis v1.0.47
 	github.com/uptrace/bun v1.2.3
 	github.com/uptrace/bun/dialect/mssqldialect v1.2.3
 	github.com/uptrace/bun/dialect/mysqldialect v1.2.3
@@ -25,7 +25,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.30.0
 	go.uber.org/fx v1.22.2
 	golang.org/x/crypto v0.27.0
-	google.golang.org/grpc v1.67.0
+	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.34.2
 )
 
@@ -47,7 +47,7 @@ require (
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.4.0 // indirect
-	github.com/redis/rueidis/rueidisotel v1.0.46 // indirect
+	github.com/redis/rueidis/rueidisotel v1.0.47 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
@@ -75,8 +75,8 @@ require (
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240924160255-9d4c2d233b61 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240924160255-9d4c2d233b61 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240930140551-af27646dc61f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240930140551-af27646dc61f // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.2 // indirect
 )
