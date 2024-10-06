@@ -13,6 +13,7 @@ import (
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/validator"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -160,9 +161,12 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	}, nil
 }
 
-func (s *tokensServiceServer) RevokeToken(_ context.Context, req *iam.RevokeTokenRequest) (*iam.RevokeTokenResponse, error) {
-	if _, err := s.ts.Revoke(req.GetAccessToken()); err != nil {
-		return nil, err
+func (s *tokensServiceServer) RevokeToken(ctx context.Context, req *iam.RevokeTokenRequest) (*iam.RevokeTokenResponse, error) {
+	splits := strings.SplitN(metadata.ExtractIncoming(ctx).Get(secure.AuthHeaderKey), " ", 2)
+	if len(splits) == 2 && strings.EqualFold(splits[0], secure.AuthSchemaBearer) {
+		if _, err := s.ts.Revoke(splits[1]); err != nil {
+			return nil, err
+		}
 	}
 	return &iam.RevokeTokenResponse{}, nil
 }

@@ -191,8 +191,8 @@ model Participant {
   createdAt     DateTime  @map("created_at") @db.Timestamp(6)
   updatedAt     DateTime  @map("updated_at") @db.Timestamp(6)
   expiresAt     DateTime? @map("expires_at") @db.Timestamp(6)
-  commonName    String    @unique(map: "ix_participants_common_name") @map("common_name") @db.VarChar(128)
-  shortName     String    @unique(map: "ix_participants_short_name") @map("short_name") @db.VarChar(64)
+  commonName    String    @map("common_name") @db.VarChar(128)
+  shortName     String    @map("short_name") @db.VarChar(64)
   licenseType   String    @map("license_type") @db.VarChar(32)
   licenseCode   String?   @map("license_code") @db.VarChar(64)
   accounts      Account[]
