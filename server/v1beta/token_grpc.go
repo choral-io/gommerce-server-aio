@@ -24,10 +24,20 @@ import (
 
 func (p *formPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error {
 	if req.GetUsername().GetValue() == "" {
-		return validator.NewError("username", "username is required when using form password login provider")
+		return validator.NewError("username", "username is required when using FORM_PASSWORD login provider")
 	}
 	if req.GetPassword().GetValue() == "" {
-		return validator.NewError("password", "password is required when using form password login provider")
+		return validator.NewError("password", "password is required when using FORM_PASSWORD login provider")
+	}
+	return nil
+}
+
+func (p *smsOTPCodeLoginProvider) Validate(req *iam.CreateTokenRequest) error {
+	if req.GetUsername().GetValue() == "" {
+		return validator.NewError("username", "username is required when using SMS_OTP_CODE login provider")
+	}
+	if req.GetPassword().GetValue() == "" {
+		return validator.NewError("password", "password is required when using SMS_OTP_CODE login provider")
 	}
 	return nil
 }
