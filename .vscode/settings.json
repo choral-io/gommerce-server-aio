@@ -21,6 +21,6 @@
     "-count=1"
   ],
   "go.testEnvVars": {
-    "GOMMERCE_CONFIG_PATH": "${workspaceFolder}/config/example.yaml"
+    "GOMMERCE_CONFIG_PATH": "${workspaceFolder}/config/test-local.yaml"
   }
 }

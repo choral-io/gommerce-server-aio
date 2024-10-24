@@ -9,7 +9,7 @@ import (
 	"time"
 
 	iam "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
-	"github.com/choral-io/gommerce-server-aio/data/models"
+	"github.com/choral-io/gommerce-server-aio/data/repos"
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/validator"
@@ -18,8 +18,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/uptrace/bun"
 )
 
 func (p *formPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error {
@@ -46,20 +44,20 @@ type tokensServiceServer struct {
 	iam.UnimplementedTokensServiceServer
 
 	cfg config.SecureTokenConfig
-	bdb bun.IDB
+	drs repos.DataRepos
 	ts  secure.TokenStore
 	lps map[string]LoginProvider
 }
 
-func NewTokensServiceServer(cfg config.SecureTokenConfig, bdb bun.IDB, ts secure.TokenStore) iam.TokensServiceServer {
+func NewTokensServiceServer(cfg config.SecureTokenConfig, drs repos.DataRepos, ts secure.TokenStore) iam.TokensServiceServer {
 	s := &tokensServiceServer{
 		cfg: cfg,
-		bdb: bdb,
+		drs: drs,
 		ts:  ts,
 		lps: make(map[string]LoginProvider, 2),
 	}
 
-	s.lps[LoginProviderFormPassword] = NewFormPasswordLoginProvider(bdb)
+	s.lps[LoginProviderFormPassword] = NewFormPasswordLoginProvider(drs)
 	s.lps[LoginProviderSmsOtpCode] = NewSMSOTPCodeLoginProvider()
 
 	return s
@@ -96,9 +94,9 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 			return nil, err
 		}
 	}
-	realm := models.Realm{}
-	if err := s.bdb.NewSelect().Model(&realm).Where(`"realm"."name" = ?`, req.Realm).Scan(ctx); err != nil {
-		return nil, fmt.Errorf("realm with name %s not found", req.Realm)
+	realm, err := s.drs.Realms().FindOneByName(ctx, req.Realm)
+	if err != nil {
+		return nil, fmt.Errorf("realm with name %s not found: %w", req.Realm, err)
 	}
 	login, err := provider.Login(ctx, realm.Id, req.Username.GetValue(), req.Password.GetValue(), req.IdToken.GetValue(), nil)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -127,10 +125,8 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	if login.ExpiresAt.Valid && !login.ExpiresAt.Time.After(time.Now()) {
 		return nil, errors.New("login expired")
 	}
-	var roles []string
-	if err := s.bdb.NewSelect().Model((*models.RoleUser)(nil)).Relation("Role", func(sq *bun.SelectQuery) *bun.SelectQuery {
-		return sq.ExcludeColumn("*")
-	}).Column("role.name").Where(`"role_user"."user_id" = ?`, login.User.Id).Scan(ctx, &roles); err != nil {
+	roles, _, err := s.drs.Roles().FindNamesForUser(ctx, login.User.Id)
+	if err != nil {
 		return nil, fmt.Errorf("failed to query roles: %w", err)
 	}
 	scope := make([]string, len(roles))
@@ -145,23 +141,8 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	if err != nil {
 		return nil, err
 	}
-	if err := s.bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		res, err := tx.NewUpdate().Model((*models.User)(nil)).
-			Set(`"updated_at" = ?`, now).
-			Set(`"first_login_time" = COALESCE("user"."first_login_time", ?)`, now).
-			Set(`"last_active_time" = ?`, now).
-			Where(`"id" = ?`, login.UserId).Exec(ctx)
-		if err != nil {
-			return errors.New("failed to update user")
-		}
-		if erc, err := res.RowsAffected(); err != nil {
-			return errors.New("failed to update user")
-		} else if erc == 0 {
-			return errors.New("failed to update user")
-		}
-		return nil
-	}); err != nil {
-		return nil, err
+	if err := s.drs.Users().UpdateLoginStatus(ctx, login.User.Id, now); err != nil {
+		return nil, fmt.Errorf("failed to update login status: %w", err)
 	}
 	return &iam.CreateTokenResponse{
 		TokenType:    secure.TokenTypeBearer,

@@ -6,21 +6,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/choral-io/gommerce-server-aio/data/models"
+	drs "github.com/choral-io/gommerce-server-aio/data/repos"
 	"github.com/choral-io/gommerce-server-core/secure"
-	"github.com/uptrace/bun"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type BasicTokenStore struct {
-	bdb bun.IDB
+	drs drs.DataRepos
 }
 
 var _ secure.TokenStore = (*BasicTokenStore)(nil)
 
-func NewBasicTokenStore(bdb bun.IDB) (*BasicTokenStore, error) {
+func NewBasicTokenStore(drs drs.DataRepos) (*BasicTokenStore, error) {
 	return &BasicTokenStore{
-		bdb: bdb,
+		drs: drs,
 	}, nil
 }
 
@@ -46,9 +45,8 @@ func (s *BasicTokenStore) Renew(string, time.Duration) (string, error) {
 
 func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 	if username, password, err := parseBasicAuth(value); err == nil {
-		client := models.Client{}
-		if err := s.bdb.NewSelect().Model(&client).
-			Where(`secret_key = ?`, username).Scan(context.Background()); err != nil {
+		client, err := s.drs.Clients().FindOneBySecretKey(context.Background(), username)
+		if err != nil {
 			return nil, secure.ErrInvalidToken
 		}
 		if client.Disabled {

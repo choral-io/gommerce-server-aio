@@ -9,6 +9,12 @@ import (
 	"github.com/uptrace/bun"
 )
 
+const (
+	USER_PROFILE_DISPLAY_NAME_ATTRIBUTE = "profile.display_name"
+	USER_PROFILE_AVATAR_URL_ATTRIBUTE   = "profile.avatar_url"
+	USER_PROFILE_GENDER_ATTRIBUTE       = "profile.gender"
+)
+
 type User struct {
 	bun.BaseModel `bun:"table:users,alias:user"`
 

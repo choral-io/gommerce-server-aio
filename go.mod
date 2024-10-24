@@ -13,14 +13,14 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0
 	github.com/joho/godotenv v1.5.1
-	github.com/minio/minio-go/v7 v7.0.78
+	github.com/minio/minio-go/v7 v7.0.79
 	github.com/nats-io/nats.go v1.37.0
 	github.com/redis/rueidis v1.0.48
-	github.com/uptrace/bun v1.2.3
-	github.com/uptrace/bun/dialect/mssqldialect v1.2.3
-	github.com/uptrace/bun/dialect/mysqldialect v1.2.3
-	github.com/uptrace/bun/dialect/pgdialect v1.2.3
-	github.com/uptrace/bun/driver/pgdriver v1.2.3
+	github.com/uptrace/bun v1.2.5
+	github.com/uptrace/bun/dialect/mssqldialect v1.2.5
+	github.com/uptrace/bun/dialect/mysqldialect v1.2.5
+	github.com/uptrace/bun/dialect/pgdialect v1.2.5
+	github.com/uptrace/bun/driver/pgdriver v1.2.5
 	go.opentelemetry.io/otel/metric v1.31.0
 	go.opentelemetry.io/otel/trace v1.31.0
 	go.uber.org/fx v1.23.0
@@ -52,7 +52,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/uptrace/bun/extra/bunotel v1.2.3 // indirect
+	github.com/uptrace/bun/extra/bunotel v1.2.5 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

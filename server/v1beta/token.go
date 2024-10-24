@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/uptrace/bun"
+	"github.com/choral-io/gommerce-server-aio/data/repos"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,11 +21,11 @@ type LoginProvider interface {
 }
 
 type formPasswordLoginProvider struct {
-	bdb bun.IDB
+	drs repos.DataRepos
 }
 
-func NewFormPasswordLoginProvider(bdb bun.IDB) LoginProvider {
-	return &formPasswordLoginProvider{bdb: bdb}
+func NewFormPasswordLoginProvider(drs repos.DataRepos) LoginProvider {
+	return &formPasswordLoginProvider{drs: drs}
 }
 
 func (p *formPasswordLoginProvider) Name() string {
@@ -33,12 +33,8 @@ func (p *formPasswordLoginProvider) Name() string {
 }
 
 func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, _ string, _ []string) (*models.Login, error) {
-	login := models.Login{}
-	if err := p.bdb.NewSelect().Model(&login).
-		Where(`"login"."provider" = ?`, p.Name()).
-		Where(`"login"."identifier" = ?`, username).
-		Where(`"user"."realm_id" = ?`, realmId).
-		Relation("User").Scan(ctx); err != nil {
+	login, err := p.drs.Logins().FindOneByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
+	if err != nil {
 		return nil, err
 	}
 	if !login.Credential.Valid {
@@ -47,7 +43,7 @@ func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username
 	if err := bcrypt.CompareHashAndPassword([]byte(login.Credential.String), []byte(password)); err != nil {
 		return nil, errors.New("password not match")
 	}
-	return &login, nil
+	return login, nil
 }
 
 type smsOTPCodeLoginProvider struct{}

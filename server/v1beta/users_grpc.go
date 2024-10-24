@@ -6,10 +6,9 @@ import (
 	"errors"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-core/data"
+	"github.com/choral-io/gommerce-server-aio/data/repos"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/uptrace/bun"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -23,11 +22,11 @@ import (
 type usersServiceServer struct {
 	iam.UnimplementedUsersServiceServer
 
-	bdb bun.IDB
+	drs repos.DataRepos
 }
 
-func NewUsersServiceServer(bdb bun.IDB) iam.UsersServiceServer {
-	return &usersServiceServer{bdb: bdb}
+func NewUsersServiceServer(drs repos.DataRepos) iam.UsersServiceServer {
+	return &usersServiceServer{drs: drs}
 }
 
 func (s *usersServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
@@ -49,8 +48,8 @@ func (s *usersServiceServer) Authorize(ctx context.Context, procedure string) er
 }
 
 func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequest) (*iam.RegisterResponse, error) {
-	realm := models.Realm{}
-	if err := s.bdb.NewSelect().Model(&realm).Where("name = ?", req.Realm).Scan(ctx); err != nil {
+	realm, err := s.drs.Realms().FindOneByName(ctx, req.Realm)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, status.Errorf(codes.InvalidArgument, "realm %s not found", req.Realm)
 		}
@@ -65,21 +64,21 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 		Approved:   true,
 		Verified:   true,
 		Attributes: map[string]string{},
+		Profile: &models.Profile{
+			DisplayName: req.DisplayName.GetValue(),
+			AvatarUrl:   sqlpb.ToNullString(req.AvatarUrl),
+			Gender:      gender.ToSqlNullString(req.Gender),
+		},
 	}
-	profile := models.Profile{
-		DisplayName: req.DisplayName.GetValue(),
-		AvatarUrl:   sqlpb.ToNullString(req.AvatarUrl),
-		Gender:      gender.ToSqlNullString(req.Gender),
+	if user.Profile.DisplayName == "" {
+		user.Profile.DisplayName = req.Username
 	}
-	if profile.DisplayName == "" {
-		profile.DisplayName = req.Username
+	user.Attributes[models.USER_PROFILE_DISPLAY_NAME_ATTRIBUTE] = user.Profile.DisplayName
+	if user.Profile.AvatarUrl.Valid {
+		user.Attributes[models.USER_PROFILE_AVATAR_URL_ATTRIBUTE] = user.Profile.AvatarUrl.String
 	}
-	user.Attributes["profile.display_name"] = profile.DisplayName
-	if profile.AvatarUrl.Valid {
-		user.Attributes["profile.avatar_url"] = profile.AvatarUrl.String
-	}
-	if profile.Gender.Valid {
-		user.Attributes["profile.gender"] = profile.Gender.String
+	if user.Profile.Gender.Valid {
+		user.Attributes[models.USER_PROFILE_GENDER_ATTRIBUTE] = user.Profile.Gender.String
 	}
 	login := models.Login{
 		Provider:   LoginProviderFormPassword,
@@ -91,16 +90,12 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 	} else {
 		login.Credential = sql.NullString{Valid: true, String: string(hp)}
 	}
-	err := s.bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		if _, err := tx.NewInsert().Model(&user).Exec(ctx); err != nil {
+	err = s.drs.RunInTx(ctx, nil, func(ctx context.Context, drst repos.DataRepos) error {
+		if err := drst.Users().CreateUser(ctx, &user); err != nil {
 			return status.Errorf(codes.Unknown, "error creating user: %v", err)
 		}
-		profile.Id = user.Id
-		if _, err := tx.NewInsert().Model(&profile).Exec(ctx); err != nil {
-			return status.Errorf(codes.Unknown, "error creating profile: %v", err)
-		}
 		login.UserId = user.Id
-		if _, err := tx.NewInsert().Model(&login).Exec(ctx); err != nil {
+		if err := drst.Logins().CreateLogin(ctx, &login); err != nil {
 			return status.Errorf(codes.Unknown, "error creating login: %v", err)
 		}
 		return nil
@@ -114,13 +109,13 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 }
 
 func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRequest) (*iam.ListUsersResponse, error) {
-	var users []models.User
-	query := s.bdb.NewSelect().Model(&users)
-	total, err := query.Apply(data.WithPaging(req)).
-		Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
-		Relation("Creator").
-		Relation("Creator.Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
-		ScanAndCount(ctx)
+	users, total, err := s.drs.Users().FindAll(
+		ctx,
+		repos.WithPagination(req),
+		repos.WithRelation("Realm", "name"),
+		repos.WithRelation("Creator"),
+		repos.WithRelation("Creator.Realm", "name"),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -131,23 +126,22 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 		Items: make([]*iam.User, len(users)),
 	}
 	for i, u := range users {
-		res.Items[i] = toUserPB(&u)
+		res.Items[i] = toUserPB(u)
 	}
 	return res, nil
 }
 
 func (s *usersServiceServer) GetIdentity(ctx context.Context, _ *iam.GetIdentityRequest) (*iam.GetIdentityResponse, error) {
-	user := models.User{
-		Id: secure.IdentityFromContext(ctx).Token().Subject(),
-	}
-	err := s.bdb.NewSelect().Model(&user).WherePK().
-		Relation("Realm", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.Column("name") }).
-		Scan(ctx)
+	user, err := s.drs.Users().FindOneByID(
+		ctx,
+		secure.IdentityFromContext(ctx).Token().Subject(),
+		repos.WithRelation("Realm", "name"),
+	)
 	if err != nil {
 		return nil, err
 	}
 	return &iam.GetIdentityResponse{
-		User:  toUserPB(&user),
+		User:  toUserPB(user),
 		Scope: secure.IdentityFromContext(ctx).Token().Scope(),
 	}, nil
 }

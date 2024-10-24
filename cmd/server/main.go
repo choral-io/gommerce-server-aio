@@ -24,6 +24,7 @@ import (
 	"go.uber.org/fx/fxevent"
 
 	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
+	repos "github.com/choral-io/gommerce-server-aio/data/repos/pgsql"
 	srv "github.com/choral-io/gommerce-server-aio/server"
 	srv1 "github.com/choral-io/gommerce-server-aio/server/v1"
 	srv1b "github.com/choral-io/gommerce-server-aio/server/v1beta"
@@ -55,6 +56,7 @@ func main() {
 		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // provide redis client and redis seq
 		fx.Provide(data.NewIdWorker),                              // provide id worker
 		fx.Provide(data.NewBunDB),                                 // provide bun db
+		fx.Provide(repos.NewDataRepos),                            // provide data repos
 		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // provide token stores
 		fx.Provide(srv.NewServerAuthorizer),                       // provide server authorizer
 		fx.Provide(srv.NewSelectorMatcher),                        // provide selector matcher
@@ -89,7 +91,8 @@ func main() {
 					server.WithStaticFileHandler("/**", static.FS()),    // add static file handler
 				)
 			}, grpcHandlerAnns)),
-		fx.Invoke(data.SetDefaultIdWorker), // set default id worker
+		fx.Invoke(logging.SetDefaultLogger), // set default logger
+		fx.Invoke(data.SetDefaultIdWorker),  // set default id worker
 		fx.Invoke( // register db connection to lifecycle
 			func(bdb bun.IDB, lc fx.Lifecycle) {
 				lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
