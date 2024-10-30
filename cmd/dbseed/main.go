@@ -29,7 +29,8 @@ const (
 )
 
 func main() {
-	_ = godotenv.Load("prisma/.env")
+	_ = godotenv.Load("cmd/dbseed/.env.local")
+	_ = godotenv.Load("cmd/dbseed/.env")
 	log.SetFlags(0)
 	log.Printf("%sSeeding database...%s", ansiBlue, ansiReset)
 	if err := seed(context.Background()); err != nil {

@@ -1,17 +1,17 @@
-package v1beta
+package iam_v1beta
 
 import (
 	"database/sql"
 
-	iam "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
+	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func toUserPB(u *models.User) *iam.User {
-	r := &iam.User{
+func toUserPB(u *models.User) *iam_pb.User {
+	r := &iam_pb.User{
 		Id:                 u.Id,
 		Disabled:           u.Disabled,
 		Approved:           u.Approved,

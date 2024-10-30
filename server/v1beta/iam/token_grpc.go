@@ -1,4 +1,4 @@
-package v1beta
+package iam_v1beta
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	iam "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
+	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 	"github.com/choral-io/gommerce-server-aio/data/repos"
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/secure"
@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (p *formPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error {
+func (p *formPasswordLoginProvider) Validate(req *iam_pb.CreateTokenRequest) error {
 	if req.GetUsername().GetValue() == "" {
 		return validator.NewError("username", "username is required when using FORM_PASSWORD login provider")
 	}
@@ -30,7 +30,7 @@ func (p *formPasswordLoginProvider) Validate(req *iam.CreateTokenRequest) error 
 	return nil
 }
 
-func (p *smsOTPCodeLoginProvider) Validate(req *iam.CreateTokenRequest) error {
+func (p *smsOTPCodeLoginProvider) Validate(req *iam_pb.CreateTokenRequest) error {
 	if req.GetUsername().GetValue() == "" {
 		return validator.NewError("username", "username is required when using SMS_OTP_CODE login provider")
 	}
@@ -41,7 +41,7 @@ func (p *smsOTPCodeLoginProvider) Validate(req *iam.CreateTokenRequest) error {
 }
 
 type tokensServiceServer struct {
-	iam.UnimplementedTokensServiceServer
+	iam_pb.UnimplementedTokensServiceServer
 
 	cfg config.SecureTokenConfig
 	drs repos.DataRepos
@@ -49,7 +49,7 @@ type tokensServiceServer struct {
 	lps map[string]LoginProvider
 }
 
-func NewTokensServiceServer(cfg config.SecureTokenConfig, drs repos.DataRepos, ts secure.TokenStore) iam.TokensServiceServer {
+func NewTokensServiceServer(cfg config.SecureTokenConfig, drs repos.DataRepos, ts secure.TokenStore) iam_pb.TokensServiceServer {
 	s := &tokensServiceServer{
 		cfg: cfg,
 		drs: drs,
@@ -64,21 +64,21 @@ func NewTokensServiceServer(cfg config.SecureTokenConfig, drs repos.DataRepos, t
 }
 
 func (s *tokensServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
-	reg.RegisterService(&iam.TokensService_ServiceDesc, s)
+	reg.RegisterService(&iam_pb.TokensService_ServiceDesc, s)
 }
 
 func (s *tokensServiceServer) RegisterGatewayClient(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return iam.RegisterTokensServiceHandler(ctx, mux, conn)
+	return iam_pb.RegisterTokensServiceHandler(ctx, mux, conn)
 }
 
 func (s *tokensServiceServer) Authorize(ctx context.Context, procedure string) error {
-	if procedure == iam.TokensService_CreateToken_FullMethodName || procedure == iam.TokensService_RefreshToken_FullMethodName {
+	if procedure == iam_pb.TokensService_CreateToken_FullMethodName || procedure == iam_pb.TokensService_RefreshToken_FullMethodName {
 		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBasic))
 	}
 	return nil
 }
 
-func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTokenRequest) (*iam.CreateTokenResponse, error) {
+func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam_pb.CreateTokenRequest) (*iam_pb.CreateTokenResponse, error) {
 	now := time.Now()
 	provider, ok := s.lps[strings.ToUpper(req.Provider)]
 	if !ok {
@@ -88,7 +88,7 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 		return nil, errors.New("login provider not implemented")
 	}
 	if v, ok := provider.(interface {
-		Validate(*iam.CreateTokenRequest) error
+		Validate(*iam_pb.CreateTokenRequest) error
 	}); ok {
 		if err := v.Validate(req); err != nil {
 			return nil, err
@@ -144,7 +144,7 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	if err := s.drs.Users().UpdateLoginStatus(ctx, login.User.Id, now); err != nil {
 		return nil, fmt.Errorf("failed to update login status: %w", err)
 	}
-	return &iam.CreateTokenResponse{
+	return &iam_pb.CreateTokenResponse{
 		TokenType:    secure.TokenTypeBearer,
 		ExpiresIn:    int32(time.Until(now.Add(s.cfg.GetAccessTokenTTL())).Seconds()),
 		AccessToken:  uat,
@@ -152,17 +152,17 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam.CreateTo
 	}, nil
 }
 
-func (s *tokensServiceServer) RevokeToken(ctx context.Context, req *iam.RevokeTokenRequest) (*iam.RevokeTokenResponse, error) {
+func (s *tokensServiceServer) RevokeToken(ctx context.Context, req *iam_pb.RevokeTokenRequest) (*iam_pb.RevokeTokenResponse, error) {
 	splits := strings.SplitN(metadata.ExtractIncoming(ctx).Get(secure.AuthHeaderKey), " ", 2)
 	if len(splits) == 2 && strings.EqualFold(splits[0], secure.AuthSchemaBearer) {
 		if _, err := s.ts.Revoke(splits[1]); err != nil {
 			return nil, err
 		}
 	}
-	return &iam.RevokeTokenResponse{}, nil
+	return &iam_pb.RevokeTokenResponse{}, nil
 }
 
-func (s *tokensServiceServer) RefreshToken(_ context.Context, req *iam.RefreshTokenRequest) (*iam.RefreshTokenResponse, error) {
+func (s *tokensServiceServer) RefreshToken(_ context.Context, req *iam_pb.RefreshTokenRequest) (*iam_pb.RefreshTokenResponse, error) {
 	now := time.Now()
 	uat, err := s.ts.Renew(req.GetRefreshToken(), s.cfg.GetAccessTokenTTL())
 	if err != nil {
@@ -173,7 +173,7 @@ func (s *tokensServiceServer) RefreshToken(_ context.Context, req *iam.RefreshTo
 	if err != nil {
 		return nil, err
 	}
-	return &iam.RefreshTokenResponse{
+	return &iam_pb.RefreshTokenResponse{
 		TokenType:    secure.TokenTypeBearer,
 		ExpiresIn:    int32(time.Until(now.Add(s.cfg.GetAccessTokenTTL())).Seconds()),
 		AccessToken:  uat,

@@ -1,4 +1,4 @@
-package v1beta
+package oss_v1beta
 
 import (
 	"fmt"

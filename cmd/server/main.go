@@ -31,22 +31,16 @@ import (
 	"github.com/choral-io/gommerce-server-aio/static"
 )
 
-var (
-	grpcServerFxTag = `group:"grpc_servers"`
-	grpcServersAnns = []fx.Annotation{fx.As(new(any)), fx.ResultTags(grpcServerFxTag)}
-	grpcHandlerAnns = fx.ParamTags(grpcServerFxTag)
-)
-
 func main() {
 	env, ok := os.LookupEnv("GOMMERCE_ENVIRONMENT")
 	if !ok {
 		env = "development"
+		os.Setenv("GOMMERCE_ENVIRONMENT", env)
 	}
 	_ = godotenv.Load(fmt.Sprintf(".env.%s.local", env))
 	_ = godotenv.Load(".env.local")
 	_ = godotenv.Load(fmt.Sprintf(".env.%s", env))
 	_ = godotenv.Load(".env")
-	_ = os.Setenv("GOMMERCE_ENVIRONMENT", env) // prevent .env files from overriding it
 	fx.New(
 		fx.Provide(config.LoadYamlConfig, config.ExtractSections), // load and extract config sections
 		fx.Provide(logging.NewLogger),                             // provide logger
@@ -63,17 +57,9 @@ func main() {
 		fx.Provide(server.NewHTTPServer),                          // provide http server
 		fx.Provide(events.NewNATSConn),                            // provide nats connection
 		fx.Provide(srv1b.NewObjectStoreService),                   // provide object store service
-		fx.Provide( // register grpc servers
-			fx.Annotate(server.NewHealthServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1.NewSequenceServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1.NewSnowflakeServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1.NewPasswordServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1.NewDateTimeServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1b.NewTokensServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1b.NewUsersServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1b.NewChatsServiceServer, grpcServersAnns...),
-			fx.Annotate(srv1b.NewStateStoreServiceServer, grpcServersAnns...),
-		),
+		fx.Provide(srv.ProviceRegistrations()...),                 // provide grpc servers
+		fx.Provide(srv1.ProviceRegistrations()...),                // provide grpc servers
+		fx.Provide(srv1b.ProviceRegistrations()...),               // provide grpc servers
 		fx.Provide( // create grpc handler
 			fx.Annotate(func(regs []any, cfg config.ServerHTTPConfig,
 				logger logging.Logger, tp trace.TracerProvider, mp metric.MeterProvider,
@@ -90,7 +76,8 @@ func main() {
 					server.WithServeMuxRoutes(oss.ServerMuxRoutes()...), // add oss mux routes
 					server.WithStaticFileHandler("/**", static.FS()),    // add static file handler
 				)
-			}, grpcHandlerAnns)),
+			}, fx.ParamTags(srv.ServerRegistrationsTag)),
+		),
 		fx.Invoke(logging.SetDefaultLogger), // set default logger
 		fx.Invoke(data.SetDefaultIdWorker),  // set default id worker
 		fx.Invoke( // register db connection to lifecycle

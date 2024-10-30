@@ -1,4 +1,4 @@
-package v1beta
+package chats_v1beta
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	chats "github.com/choral-io/gommerce-protobuf-go/chats/v1beta"
+	chats_pb "github.com/choral-io/gommerce-protobuf-go/chats/v1beta"
 	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 	"github.com/choral-io/gommerce-server-aio/data/models"
@@ -22,16 +22,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type chatsServiceServer struct {
-	chats.UnimplementedChatsServiceServer
+type ChatsServiceServer struct {
+	chats_pb.UnimplementedChatsServiceServer
 
 	bdb    bun.IDB
 	nsc    *nats.Conn
 	logger logging.Logger
 }
 
-func NewChatsServiceServer(bdb bun.IDB, nsc *nats.Conn, logger logging.Logger) (chats.ChatsServiceServer, error) {
-	s := &chatsServiceServer{
+func NewChatsServiceServer(bdb bun.IDB, nsc *nats.Conn, logger logging.Logger) (chats_pb.ChatsServiceServer, error) {
+	s := &ChatsServiceServer{
 		bdb:    bdb,
 		nsc:    nsc,
 		logger: logger,
@@ -56,19 +56,19 @@ func NewChatsServiceServer(bdb bun.IDB, nsc *nats.Conn, logger logging.Logger) (
 	return s, nil
 }
 
-func (s *chatsServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
-	reg.RegisterService(&chats.ChatsService_ServiceDesc, s)
+func (s *ChatsServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
+	reg.RegisterService(&chats_pb.ChatsService_ServiceDesc, s)
 }
 
-func (s *chatsServiceServer) RegisterGatewayClient(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return chats.RegisterChatsServiceHandler(ctx, mux, conn)
+func (s *ChatsServiceServer) RegisterGatewayClient(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return chats_pb.RegisterChatsServiceHandler(ctx, mux, conn)
 }
 
-func (s *chatsServiceServer) Authorize(ctx context.Context, _ string) error {
+func (s *ChatsServiceServer) Authorize(ctx context.Context, _ string) error {
 	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBearer))
 }
 
-func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSessionsRequest) (*chats.ListSessionsResponse, error) {
+func (s *ChatsServiceServer) ListSessions(ctx context.Context, req *chats_pb.ListSessionsRequest) (*chats_pb.ListSessionsResponse, error) {
 	user := secure.IdentityFromContext(ctx)
 	var members []models.ChatMember
 	total, err := s.bdb.NewSelect().Model(&members).
@@ -77,11 +77,11 @@ func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSe
 	if err != nil {
 		return nil, err
 	}
-	res := &chats.ListSessionsResponse{
+	res := &chats_pb.ListSessionsResponse{
 		Page:  req.Page,
 		Size:  req.Size,
 		Total: int64(total),
-		Items: make([]*chats.Session, len(members)),
+		Items: make([]*chats_pb.Session, len(members)),
 	}
 	sids := make([]string, len(members))
 	for i, m := range members {
@@ -93,7 +93,7 @@ func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSe
 		return nil, err
 	}
 	for i, m := range members {
-		res.Items[i] = &chats.Session{
+		res.Items[i] = &chats_pb.Session{
 			Id:           m.SessionId,
 			Readonly:     m.Session.Readonly,
 			CreatedAt:    timestamppb.New(m.Session.CreatedAt),
@@ -102,11 +102,11 @@ func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSe
 			IconUrl:      sqlpb.FromNullString(m.Session.IconUrl),
 			Title:        m.Session.Title,
 			Introduction: sqlpb.FromNullString(m.Session.Introduction),
-			Members:      make([]*chats.Member, len(m.Session.Members)),
+			Members:      make([]*chats_pb.Member, len(m.Session.Members)),
 			ReadCursor:   sqlpb.FromNullString(m.ReadCursor),
 		}
 		for j, m := range m.Session.Members {
-			res.Items[i].Members[j] = &chats.Member{
+			res.Items[i].Members[j] = &chats_pb.Member{
 				UserId:      m.UserId,
 				SessionId:   m.SessionId,
 				CreatedAt:   timestamppb.New(m.CreatedAt),
@@ -122,7 +122,7 @@ func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSe
 		}
 		for _, r := range records {
 			if r.SessionId == m.SessionId {
-				res.Items[i].LastRecord = &chats.Record{
+				res.Items[i].LastRecord = &chats_pb.Record{
 					Id:        r.Id,
 					SessionId: r.SessionId,
 					CreatorId: r.CreatorId,
@@ -140,7 +140,7 @@ func (s *chatsServiceServer) ListSessions(ctx context.Context, req *chats.ListSe
 	return res, nil
 }
 
-func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.DescribeSessionRequest) (*chats.DescribeSessionResponse, error) {
+func (s *ChatsServiceServer) DescribeSession(ctx context.Context, req *chats_pb.DescribeSessionRequest) (*chats_pb.DescribeSessionResponse, error) {
 	user := secure.IdentityFromContext(ctx)
 	member := models.ChatMember{
 		SessionId: req.SessionId,
@@ -149,11 +149,11 @@ func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.Des
 	if err := s.bdb.NewSelect().Model(&member).
 		Relation("Session").Relation("Session.Members").Relation("Session.Members.Profile").
 		WherePK("session_id", "user_id").Scan(ctx); errors.Is(err, sql.ErrNoRows) {
-		return &chats.DescribeSessionResponse{Item: nil}, nil
+		return &chats_pb.DescribeSessionResponse{Item: nil}, nil
 	} else if err != nil {
 		return nil, err
 	}
-	session := &chats.Session{
+	session := &chats_pb.Session{
 		Id:           member.SessionId,
 		Readonly:     member.Session.Readonly,
 		CreatedAt:    timestamppb.New(member.Session.CreatedAt),
@@ -162,7 +162,7 @@ func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.Des
 		IconUrl:      sqlpb.FromNullString(member.Session.IconUrl),
 		Title:        member.Session.Title,
 		Introduction: sqlpb.FromNullString(member.Session.Introduction),
-		Members:      make([]*chats.Member, len(member.Session.Members)),
+		Members:      make([]*chats_pb.Member, len(member.Session.Members)),
 		ReadCursor:   sqlpb.FromNullString(member.ReadCursor),
 	}
 	records := make([]models.ChatRecord, 0, 1)
@@ -171,7 +171,7 @@ func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.Des
 		return nil, err
 	}
 	for j, m := range member.Session.Members {
-		session.Members[j] = &chats.Member{
+		session.Members[j] = &chats_pb.Member{
 			UserId:      m.UserId,
 			SessionId:   m.SessionId,
 			CreatedAt:   timestamppb.New(m.CreatedAt),
@@ -187,7 +187,7 @@ func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.Des
 	}
 	if len(records) > 0 {
 		r := records[0]
-		session.LastRecord = &chats.Record{
+		session.LastRecord = &chats_pb.Record{
 			Id:        r.Id,
 			SessionId: r.SessionId,
 			CreatorId: r.CreatorId,
@@ -199,10 +199,10 @@ func (s *chatsServiceServer) DescribeSession(ctx context.Context, req *chats.Des
 			Content:   r.Content,
 		}
 	}
-	return &chats.DescribeSessionResponse{Item: session}, nil
+	return &chats_pb.DescribeSessionResponse{Item: session}, nil
 }
 
-func (s *chatsServiceServer) ReadSession(ctx context.Context, req *chats.ReadSessionRequest) (*chats.ReadSessionResponse, error) {
+func (s *ChatsServiceServer) ReadSession(ctx context.Context, req *chats_pb.ReadSessionRequest) (*chats_pb.ReadSessionResponse, error) {
 	userId := secure.IdentityFromContext(ctx).Token().Subject()
 	if _, err := s.bdb.NewUpdate().
 		Model((*models.ChatMember)(nil)).
@@ -211,10 +211,10 @@ func (s *chatsServiceServer) ReadSession(ctx context.Context, req *chats.ReadSes
 		Exec(ctx); err != nil {
 		return nil, err
 	}
-	return &chats.ReadSessionResponse{}, nil
+	return &chats_pb.ReadSessionResponse{}, nil
 }
 
-func (s *chatsServiceServer) SendRecord(ctx context.Context, req *chats.SendRecordRequest) (*chats.SendRecordResponse, error) {
+func (s *ChatsServiceServer) SendRecord(ctx context.Context, req *chats_pb.SendRecordRequest) (*chats_pb.SendRecordResponse, error) {
 	user := secure.IdentityFromContext(ctx)
 	record := models.ChatRecord{
 		SessionId: req.SessionId,
@@ -226,7 +226,7 @@ func (s *chatsServiceServer) SendRecord(ctx context.Context, req *chats.SendReco
 	if _, err := s.bdb.NewInsert().Model(&record).Exec(ctx); err != nil {
 		return nil, err
 	}
-	event := &chats.Record{
+	event := &chats_pb.Record{
 		Id:        record.Id,
 		SessionId: record.SessionId,
 		CreatorId: record.CreatorId,
@@ -239,12 +239,12 @@ func (s *chatsServiceServer) SendRecord(ctx context.Context, req *chats.SendReco
 	if err := s.nsc.Publish(fmt.Sprintf("chat.records.s.%s", req.SessionId), bytes); err != nil {
 		s.logger.Error(ctx, "failed to publish chat record", "error", err)
 	}
-	return &chats.SendRecordResponse{
+	return &chats_pb.SendRecordResponse{
 		Id: event.Id,
 	}, nil
 }
 
-func (s *chatsServiceServer) ListRecords(ctx context.Context, req *chats.ListRecordsRequest) (*chats.ListRecordsResponse, error) {
+func (s *ChatsServiceServer) ListRecords(ctx context.Context, req *chats_pb.ListRecordsRequest) (*chats_pb.ListRecordsResponse, error) {
 	records := make([]models.ChatRecord, 0)
 	query := s.bdb.NewSelect().Model(&records)
 	if req.SessionId.GetValue() != "" {
@@ -253,11 +253,11 @@ func (s *chatsServiceServer) ListRecords(ctx context.Context, req *chats.ListRec
 	if err := query.Scan(ctx); err != nil {
 		return nil, err
 	}
-	res := &chats.ListRecordsResponse{
-		Items: make([]*chats.Record, len(records)),
+	res := &chats_pb.ListRecordsResponse{
+		Items: make([]*chats_pb.Record, len(records)),
 	}
 	for i, r := range records {
-		res.Items[i] = &chats.Record{
+		res.Items[i] = &chats_pb.Record{
 			Id:        r.Id,
 			SessionId: r.SessionId,
 			CreatorId: r.CreatorId,
@@ -271,7 +271,7 @@ func (s *chatsServiceServer) ListRecords(ctx context.Context, req *chats.ListRec
 	return res, nil
 }
 
-func (s *chatsServiceServer) WatchRecords(_ *chats.WatchRecordsRequest, srv chats.ChatsService_WatchRecordsServer) error {
+func (s *ChatsServiceServer) WatchRecords(_ *chats_pb.WatchRecordsRequest, srv chats_pb.ChatsService_WatchRecordsServer) error {
 	user := secure.IdentityFromContext(srv.Context())
 	csc := make(chan *nats.Msg)
 	cls, err := s.nsc.ChanSubscribe(fmt.Sprintf("chat.records.u.%s", user.Token().Subject()), csc)
@@ -288,11 +288,11 @@ func (s *chatsServiceServer) WatchRecords(_ *chats.WatchRecordsRequest, srv chat
 	for {
 		select {
 		case msg := <-csc:
-			record := &chats.Record{}
+			record := &chats_pb.Record{}
 			if err := proto.Unmarshal(msg.Data, record); err != nil {
 				s.logger.Error(srv.Context(), "failed to unmarshal chat record", "error", err)
 			}
-			if err := srv.Send(&chats.WatchRecordsResponse{Items: []*chats.Record{record}}); err != nil {
+			if err := srv.Send(&chats_pb.WatchRecordsResponse{Items: []*chats_pb.Record{record}}); err != nil {
 				s.logger.Error(srv.Context(), "failed to send chat records", "error", err)
 			}
 		case <-srv.Context().Done():

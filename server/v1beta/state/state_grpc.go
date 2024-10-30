@@ -1,4 +1,4 @@
-package v1beta
+package state_v1beta
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	state "github.com/choral-io/gommerce-protobuf-go/state/v1beta"
+	state_pb "github.com/choral-io/gommerce-protobuf-go/state/v1beta"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -20,30 +20,30 @@ const (
 )
 
 type stateStoreServiceServer struct {
-	state.UnimplementedStateStoreServiceServer
+	state_pb.UnimplementedStateStoreServiceServer
 
 	rdb rueidis.Client
 }
 
-func NewStateStoreServiceServer(rdb rueidis.Client) state.StateStoreServiceServer {
+func NewStateStoreServiceServer(rdb rueidis.Client) state_pb.StateStoreServiceServer {
 	return &stateStoreServiceServer{
 		rdb: rdb,
 	}
 }
 
 func (s *stateStoreServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
-	reg.RegisterService(&state.StateStoreService_ServiceDesc, s)
+	reg.RegisterService(&state_pb.StateStoreService_ServiceDesc, s)
 }
 
 func (s *stateStoreServiceServer) RegisterGatewayClient(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return state.RegisterStateStoreServiceHandler(ctx, mux, conn)
+	return state_pb.RegisterStateStoreServiceHandler(ctx, mux, conn)
 }
 
 func (s *stateStoreServiceServer) Authorize(ctx context.Context, _ string) error {
 	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBasic))
 }
 
-func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state.GetStateRequest) (*state.GetStateResponse, error) {
+func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state_pb.GetStateRequest) (*state_pb.GetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
 	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
 	cmd := s.rdb.B().Get().Key(key)
@@ -51,12 +51,12 @@ func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state.GetSt
 	if err != nil && !errors.Is(err, rueidis.Nil) {
 		return nil, err
 	}
-	return &state.GetStateResponse{
+	return &state_pb.GetStateResponse{
 		Data: data,
 	}, nil
 }
 
-func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state.SetStateRequest) (*state.SetStateResponse, error) {
+func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state_pb.SetStateRequest) (*state_pb.SetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
 	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
 	cmd := s.rdb.B().Set().Key(key).Value(rueidis.BinaryString(req.GetData()))
@@ -71,10 +71,10 @@ func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state.SetSt
 	if err != nil {
 		return nil, err
 	}
-	return &state.SetStateResponse{}, nil
+	return &state_pb.SetStateResponse{}, nil
 }
 
-func (s *stateStoreServiceServer) DelState(ctx context.Context, req *state.DelStateRequest) (*state.DelStateResponse, error) {
+func (s *stateStoreServiceServer) DelState(ctx context.Context, req *state_pb.DelStateRequest) (*state_pb.DelStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
 	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
 	cmd := s.rdb.B().Del().Key(key)
@@ -82,5 +82,5 @@ func (s *stateStoreServiceServer) DelState(ctx context.Context, req *state.DelSt
 	if err != nil {
 		return nil, err
 	}
-	return &state.DelStateResponse{}, nil
+	return &state_pb.DelStateResponse{}, nil
 }

@@ -1,4 +1,4 @@
-package v1beta
+package iam_v1beta
 
 import (
 	"context"

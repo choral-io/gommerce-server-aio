@@ -1,6 +1,5 @@
 .DS_Store
 node_modules
-prisma/.env
 *.local
 
 # Goland IDE

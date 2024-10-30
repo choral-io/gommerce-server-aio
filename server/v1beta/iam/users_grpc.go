@@ -1,4 +1,4 @@
-package v1beta
+package iam_v1beta
 
 import (
 	"context"
@@ -14,40 +14,40 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	iam "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
+	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 )
 
 type usersServiceServer struct {
-	iam.UnimplementedUsersServiceServer
+	iam_pb.UnimplementedUsersServiceServer
 
 	drs repos.DataRepos
 }
 
-func NewUsersServiceServer(drs repos.DataRepos) iam.UsersServiceServer {
+func NewUsersServiceServer(drs repos.DataRepos) iam_pb.UsersServiceServer {
 	return &usersServiceServer{drs: drs}
 }
 
 func (s *usersServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
-	reg.RegisterService(&iam.UsersService_ServiceDesc, s)
+	reg.RegisterService(&iam_pb.UsersService_ServiceDesc, s)
 }
 
 func (s *usersServiceServer) RegisterGatewayClient(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return iam.RegisterUsersServiceHandler(ctx, mux, conn)
+	return iam_pb.RegisterUsersServiceHandler(ctx, mux, conn)
 }
 
 func (s *usersServiceServer) Authorize(ctx context.Context, procedure string) error {
-	if procedure == iam.UsersService_GetIdentity_FullMethodName {
+	if procedure == iam_pb.UsersService_GetIdentity_FullMethodName {
 		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBearer))
 	}
-	if procedure == iam.UsersService_ListUsers_FullMethodName {
+	if procedure == iam_pb.UsersService_ListUsers_FullMethodName {
 		return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireRealm(RealmAdmin))
 	}
 	return nil
 }
 
-func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequest) (*iam.RegisterResponse, error) {
+func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterRequest) (*iam_pb.RegisterResponse, error) {
 	realm, err := s.drs.Realms().FindOneByName(ctx, req.Realm)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -103,12 +103,12 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam.RegisterRequ
 	if err != nil {
 		return nil, err
 	}
-	return &iam.RegisterResponse{
+	return &iam_pb.RegisterResponse{
 		User: toUserPB(&user),
 	}, nil
 }
 
-func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRequest) (*iam.ListUsersResponse, error) {
+func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam_pb.ListUsersRequest) (*iam_pb.ListUsersResponse, error) {
 	users, total, err := s.drs.Users().FindAll(
 		ctx,
 		repos.WithPagination(req),
@@ -119,11 +119,11 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 	if err != nil {
 		return nil, err
 	}
-	res := &iam.ListUsersResponse{
+	res := &iam_pb.ListUsersResponse{
 		Page:  req.Page,
 		Size:  req.Size,
 		Total: int64(total),
-		Items: make([]*iam.User, len(users)),
+		Items: make([]*iam_pb.User, len(users)),
 	}
 	for i, u := range users {
 		res.Items[i] = toUserPB(u)
@@ -131,7 +131,7 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam.ListUsersRe
 	return res, nil
 }
 
-func (s *usersServiceServer) GetIdentity(ctx context.Context, _ *iam.GetIdentityRequest) (*iam.GetIdentityResponse, error) {
+func (s *usersServiceServer) GetIdentity(ctx context.Context, _ *iam_pb.GetIdentityRequest) (*iam_pb.GetIdentityResponse, error) {
 	user, err := s.drs.Users().FindOneByID(
 		ctx,
 		secure.IdentityFromContext(ctx).Token().Subject(),
@@ -140,7 +140,7 @@ func (s *usersServiceServer) GetIdentity(ctx context.Context, _ *iam.GetIdentity
 	if err != nil {
 		return nil, err
 	}
-	return &iam.GetIdentityResponse{
+	return &iam_pb.GetIdentityResponse{
 		User:  toUserPB(user),
 		Scope: secure.IdentityFromContext(ctx).Token().Scope(),
 	}, nil

@@ -10,7 +10,9 @@
     "**/node_modules": true
   },
   "files.associations": {
-    ".env.*": "properties"
+    ".env.*": "properties",
+    "pgsql-*.hcl": "atlas-schema-postgresql",
+    "mysql-*.hcl": "atlas-schema-mysql"
   },
   "files.insertFinalNewline": true,
   "files.autoSave": "onWindowChange",
