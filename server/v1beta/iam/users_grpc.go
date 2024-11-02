@@ -5,14 +5,16 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-aio/data/repos"
-	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/choral-io/gommerce-server-core/secure"
+
+	"github.com/choral-io/gommerce-server-aio/data/models"
+	"github.com/choral-io/gommerce-server-aio/data/repos"
 
 	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"

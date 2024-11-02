@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/choral-io/gommerce-server-core/data"
 	"github.com/uptrace/bun"
+
+	"github.com/choral-io/gommerce-server-core/data"
 )
 
 type Client struct {

@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"strconv"
 
-	state_pb "github.com/choral-io/gommerce-protobuf-go/state/v1beta"
-	"github.com/choral-io/gommerce-server-core/secure"
-	"github.com/choral-io/gommerce-server-core/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/redis/rueidis"
 	"google.golang.org/grpc"
+
+	"github.com/choral-io/gommerce-server-core/secure"
+	"github.com/choral-io/gommerce-server-core/validator"
+
+	state_pb "github.com/choral-io/gommerce-protobuf-go/state/v1beta"
 )
 
 const (

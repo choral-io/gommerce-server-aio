@@ -3,8 +3,9 @@ package repos
 import (
 	"context"
 
-	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/uptrace/bun"
+
+	"github.com/choral-io/gommerce-server-aio/data/models"
 )
 
 type RealmsRepo interface {

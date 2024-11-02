@@ -4,10 +4,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/choral-io/gommerce-server-core/server"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"go.uber.org/fx"
+
+	"github.com/choral-io/gommerce-server-core/server"
 )
 
 const ServerRegistrationsTag = `group:"server/grpc.registrations"`

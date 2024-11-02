@@ -7,19 +7,22 @@ import (
 	"fmt"
 	"strings"
 
-	chats_pb "github.com/choral-io/gommerce-protobuf-go/chats/v1beta"
-	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
-	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
-	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-core/data"
-	"github.com/choral-io/gommerce-server-core/logging"
-	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nats-io/nats.go"
 	"github.com/uptrace/bun"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/choral-io/gommerce-server-core/data"
+	"github.com/choral-io/gommerce-server-core/logging"
+	"github.com/choral-io/gommerce-server-core/secure"
+
+	"github.com/choral-io/gommerce-server-aio/data/models"
+
+	chats_pb "github.com/choral-io/gommerce-protobuf-go/chats/v1beta"
+	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
+	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 )
 
 type ChatsServiceServer struct {

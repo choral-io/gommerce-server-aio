@@ -8,16 +8,19 @@ import (
 	"strings"
 	"time"
 
-	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
-	"github.com/choral-io/gommerce-server-aio/data/repos"
-	"github.com/choral-io/gommerce-server-core/config"
-	"github.com/choral-io/gommerce-server-core/secure"
-	"github.com/choral-io/gommerce-server-core/validator"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/choral-io/gommerce-server-core/config"
+	"github.com/choral-io/gommerce-server-core/secure"
+	"github.com/choral-io/gommerce-server-core/validator"
+
+	"github.com/choral-io/gommerce-server-aio/data/repos"
+
+	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 )
 
 func (p *formPasswordLoginProvider) Validate(req *iam_pb.CreateTokenRequest) error {

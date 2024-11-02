@@ -7,9 +7,6 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
-	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/mssqldialect"
@@ -17,6 +14,11 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/schema"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/choral-io/gommerce-server-core/secure"
+
+	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
+	"github.com/choral-io/gommerce-server-aio/data/models"
 )
 
 const (

@@ -6,6 +6,15 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+	"github.com/joho/godotenv"
+	"github.com/nats-io/nats.go"
+	"github.com/uptrace/bun"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/data"
 	"github.com/choral-io/gommerce-server-core/events"
@@ -13,15 +22,6 @@ import (
 	"github.com/choral-io/gommerce-server-core/otel"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/server"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-	"github.com/joho/godotenv"
-	"github.com/nats-io/nats.go"
-	"github.com/uptrace/bun"
-
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
 
 	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
 	repos "github.com/choral-io/gommerce-server-aio/data/repos/pgsql"

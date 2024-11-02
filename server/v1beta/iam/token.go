@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-aio/data/repos"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (

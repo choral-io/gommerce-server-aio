@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-aio/data/repos"
 	"github.com/redis/rueidis"
 	"github.com/uptrace/bun"
+
+	"github.com/choral-io/gommerce-server-aio/data/models"
+	"github.com/choral-io/gommerce-server-aio/data/repos"
 )
 
 type usersRepo struct {

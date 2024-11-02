@@ -6,16 +6,17 @@ import (
 	"strconv"
 	"time"
 
-	tsoffset "github.com/choral-io/gommerce-protobuf-go/types/v1/tsoffset"
-	utils_pb "github.com/choral-io/gommerce-protobuf-go/utils/v1"
-	"github.com/choral-io/gommerce-server-core/data"
-	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/redis/rueidis"
 	"github.com/uptrace/bun"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/choral-io/gommerce-server-core/data"
+	"github.com/choral-io/gommerce-server-core/secure"
+
+	tsoffset "github.com/choral-io/gommerce-protobuf-go/types/v1/tsoffset"
+	utils_pb "github.com/choral-io/gommerce-protobuf-go/utils/v1"
 )
 
 type SequenceServiceServer struct {

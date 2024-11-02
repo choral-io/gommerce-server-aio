@@ -3,11 +3,14 @@ package iam_v1beta
 import (
 	"database/sql"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/choral-io/gommerce-server-core/secure"
+
+	"github.com/choral-io/gommerce-server-aio/data/models"
+
 	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
-	"github.com/choral-io/gommerce-server-aio/data/models"
-	"github.com/choral-io/gommerce-server-core/secure"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func toUserPB(u *models.User) *iam_pb.User {

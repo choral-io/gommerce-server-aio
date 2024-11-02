@@ -6,18 +6,20 @@ import (
 	"strings"
 	"time"
 
-	drs "github.com/choral-io/gommerce-server-aio/data/repos"
-	"github.com/choral-io/gommerce-server-core/secure"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/choral-io/gommerce-server-core/secure"
+
+	"github.com/choral-io/gommerce-server-aio/data/repos"
 )
 
 type BasicTokenStore struct {
-	drs drs.DataRepos
+	drs repos.DataRepos
 }
 
 var _ secure.TokenStore = (*BasicTokenStore)(nil)
 
-func NewBasicTokenStore(drs drs.DataRepos) (*BasicTokenStore, error) {
+func NewBasicTokenStore(drs repos.DataRepos) (*BasicTokenStore, error) {
 	return &BasicTokenStore{
 		drs: drs,
 	}, nil
