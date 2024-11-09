@@ -34,7 +34,7 @@ func (r *clientsRepo) FindOneBySecretKey(ctx context.Context, secretKey string, 
 	client := new(models.Client)
 	if query, err := repos.TransformSelectQuery(
 		ctx,
-		r.bdb.NewSelect().Model(client).Where("secret_key = ?", secretKey),
+		r.bdb.NewSelect().Model(client).Where(`"secret_key" = ?`, secretKey),
 		sqts...,
 	); err != nil {
 		return nil, err

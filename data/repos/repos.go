@@ -16,8 +16,7 @@ type BaseRepo struct{}
 func (*BaseRepo) mustBeBaseRepo() {}
 
 type DataRepos interface {
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (bun.Tx, error)
-	RunInTx(ctx context.Context, opts *sql.TxOptions, f func(ctx context.Context, drs DataRepos) error) error
+	RunInTx(context.Context, *sql.TxOptions, func(context.Context, DataRepos) error) error
 	Clients() ClientsRepo
 	Realms() RealmsRepo
 	Users() UsersRepo
@@ -50,10 +49,6 @@ func NewDataRepos(
 		roles:   roles,
 		logins:  logins,
 	}
-}
-
-func (r *dataRepos) BeginTx(ctx context.Context, opts *sql.TxOptions) (bun.Tx, error) {
-	return r.bdb.BeginTx(ctx, opts)
 }
 
 func (r *dataRepos) RunInTx(ctx context.Context, opts *sql.TxOptions, f func(ctx context.Context, drs DataRepos) error) error {

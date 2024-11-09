@@ -1,5 +1,4 @@
 .DS_Store
-node_modules
 *.local
 
 # Goland IDE
@@ -13,6 +12,8 @@ bin/
 
 # protoc generated output
 # **.pb.go
+# **.pb.gw.go
+# **.pb.validate.go
 
 
 # https://github.com/github/gitignore/blob/main/Go.gitignore
@@ -38,3 +39,7 @@ bin/
 
 # Go workspace file
 go.work
+go.work.sum
+
+# env file
+.env

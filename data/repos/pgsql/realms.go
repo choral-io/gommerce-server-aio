@@ -32,7 +32,7 @@ func (r *realmsRepo) WithDB(bdb bun.IDB) repos.RealmsRepo {
 
 func (r *realmsRepo) FindOneByName(ctx context.Context, name string, sqts ...repos.SelectQueryTransformer) (*models.Realm, error) {
 	realm := new(models.Realm)
-	if query, err := repos.TransformSelectQuery(ctx, r.bdb.NewSelect().Model(realm).Where("name = ?", name), sqts...); err != nil {
+	if query, err := repos.TransformSelectQuery(ctx, r.bdb.NewSelect().Model(realm).Where(`"name" = ?`, name), sqts...); err != nil {
 		return nil, err
 	} else if err := query.Scan(ctx); err != nil {
 		return nil, err
