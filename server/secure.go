@@ -37,17 +37,17 @@ func parseBasicAuth(value string) (string, string, error) {
 	}
 }
 
-func (s *BasicTokenStore) Issue(*secure.Token, time.Duration) (string, error) {
+func (s *BasicTokenStore) Issue(context.Context, *secure.Token, time.Duration) (string, error) {
 	return "", secure.ErrUnsupportedOperation
 }
 
-func (s *BasicTokenStore) Renew(string, time.Duration) (string, error) {
+func (s *BasicTokenStore) Renew(context.Context, string, time.Duration) (string, error) {
 	return "", secure.ErrUnsupportedOperation
 }
 
-func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
+func (s *BasicTokenStore) Verify(ctx context.Context, value string) (*secure.Token, error) {
 	if username, password, err := parseBasicAuth(value); err == nil {
-		client, err := s.drs.Clients().FindOneBySecretKey(context.Background(), username)
+		client, err := s.drs.Clients().FindOneBySecretKey(ctx, username)
 		if err != nil {
 			return nil, secure.ErrInvalidToken
 		}
@@ -68,7 +68,7 @@ func (s *BasicTokenStore) Verify(value string) (*secure.Token, error) {
 	return nil, secure.ErrInvalidToken
 }
 
-func (s *BasicTokenStore) Revoke(string) (*secure.Token, error) {
+func (s *BasicTokenStore) Revoke(context.Context, string) (*secure.Token, error) {
 	return nil, secure.ErrUnsupportedOperation
 }
 

@@ -136,11 +136,11 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam_pb.Creat
 	for i, r := range roles {
 		scope[i] = "ROLE_" + strings.ToUpper(r)
 	}
-	uat, err := s.ts.Issue(secure.NewToken(secure.TokenTypeBearer, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetAccessTokenTTL())
+	uat, err := s.ts.Issue(ctx, secure.NewToken(secure.TokenTypeBearer, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetAccessTokenTTL())
 	if err != nil {
 		return nil, err
 	}
-	urt, err := s.ts.Issue(secure.NewToken(secure.TokenTypeRefresh, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetRefreshTokenTTL())
+	urt, err := s.ts.Issue(ctx, secure.NewToken(secure.TokenTypeRefresh, realm.Name, secure.IdentityFromContext(ctx).Token().Subject(), login.User.Id, scope), s.cfg.GetRefreshTokenTTL())
 	if err != nil {
 		return nil, err
 	}
@@ -158,21 +158,21 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam_pb.Creat
 func (s *tokensServiceServer) RevokeToken(ctx context.Context, req *iam_pb.RevokeTokenRequest) (*iam_pb.RevokeTokenResponse, error) {
 	splits := strings.SplitN(metadata.ExtractIncoming(ctx).Get(secure.AuthHeaderKey), " ", 2)
 	if len(splits) == 2 && strings.EqualFold(splits[0], secure.AuthSchemaBearer) {
-		if _, err := s.ts.Revoke(splits[1]); err != nil {
+		if _, err := s.ts.Revoke(ctx, splits[1]); err != nil {
 			return nil, err
 		}
 	}
 	return &iam_pb.RevokeTokenResponse{}, nil
 }
 
-func (s *tokensServiceServer) RefreshToken(_ context.Context, req *iam_pb.RefreshTokenRequest) (*iam_pb.RefreshTokenResponse, error) {
+func (s *tokensServiceServer) RefreshToken(ctx context.Context, req *iam_pb.RefreshTokenRequest) (*iam_pb.RefreshTokenResponse, error) {
 	now := time.Now()
-	uat, err := s.ts.Renew(req.GetRefreshToken(), s.cfg.GetAccessTokenTTL())
+	uat, err := s.ts.Renew(ctx, req.GetRefreshToken(), s.cfg.GetAccessTokenTTL())
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid refresh token: %s", err)
 	}
-	token, _ := s.ts.Verify(uat)
-	urt, err := s.ts.Issue(secure.NewToken(secure.TokenTypeRefresh, token.Realm(), token.Client(), token.Subject(), token.Scope()), s.cfg.GetRefreshTokenTTL())
+	token, _ := s.ts.Verify(ctx, uat)
+	urt, err := s.ts.Issue(ctx, secure.NewToken(secure.TokenTypeRefresh, token.Realm(), token.Client(), token.Subject(), token.Scope()), s.cfg.GetRefreshTokenTTL())
 	if err != nil {
 		return nil, err
 	}
