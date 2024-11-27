@@ -2,13 +2,8 @@ package repos
 
 import (
 	"context"
-
-	"github.com/uptrace/bun"
 )
 
-type RolesRepo interface {
-	baseRepo
-
-	WithDB(bdb bun.IDB) RolesRepo
+type RoleRepo interface {
 	FindNamesForUser(ctx context.Context, userId string, sqts ...SelectQueryTransformer) ([]string, int64, error)
 }

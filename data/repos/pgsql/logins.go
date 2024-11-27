@@ -3,41 +3,24 @@ package repos_pgsql
 import (
 	"context"
 
-	"github.com/redis/rueidis"
 	"github.com/uptrace/bun"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-aio/data/repos"
 )
 
-type loginsRepo struct {
-	repos.BaseRepo
-
+type loginRepo struct {
 	bdb bun.IDB
-	rdb rueidis.Client
 }
 
-func NewLoginsRepo(bdb bun.IDB, rdb rueidis.Client) repos.LoginsRepo {
-	return &loginsRepo{bdb: bdb, rdb: rdb}
-}
-
-func (r *loginsRepo) WithDB(bdb bun.IDB) repos.LoginsRepo {
-	if r.bdb == bdb {
-		return r
-	}
-	n := *r
-	n.bdb = bdb
-	return &n
-}
-
-func (r *loginsRepo) CreateLogin(ctx context.Context, login *models.Login) error {
+func (r *loginRepo) CreateLogin(ctx context.Context, login *models.Login) error {
 	if _, err := r.bdb.NewInsert().Model(login).Exec(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *loginsRepo) FindOneByIdentifier(ctx context.Context, realmId, provider, identifier string, sqts ...repos.SelectQueryTransformer) (*models.Login, error) {
+func (r *loginRepo) FindOneByIdentifier(ctx context.Context, realmId, provider, identifier string, sqts ...repos.SelectQueryTransformer) (*models.Login, error) {
 	login := new(models.Login)
 	if query, err := repos.TransformSelectQuery(
 		ctx,

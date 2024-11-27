@@ -18,7 +18,7 @@ import (
 
 const (
 	TtlInSecondsKey    = "ttlInSeconds"
-	StorageKeyTemplate = "state:store:%s:%s"
+	StorageKeyTemplate = "gommerce-server-aio:state-store:%s:%s"
 )
 
 type stateStoreServiceServer struct {
@@ -42,7 +42,7 @@ func (s *stateStoreServiceServer) RegisterGatewayClient(ctx context.Context, mux
 }
 
 func (s *stateStoreServiceServer) Authorize(ctx context.Context, _ string) error {
-	return secure.Authorize(ctx, secure.AuthFuncAuthenticated, secure.AuthFuncRequireSchema(secure.AuthSchemaBasic))
+	return secure.Authorize(ctx, secure.AuthFuncAuthenticated)
 }
 
 func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state_pb.GetStateRequest) (*state_pb.GetStateResponse, error) {

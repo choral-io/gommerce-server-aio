@@ -35,7 +35,7 @@ func main() {
 	env, ok := os.LookupEnv("GOMMERCE_ENVIRONMENT")
 	if !ok {
 		env = "development"
-		os.Setenv("GOMMERCE_ENVIRONMENT", env)
+		_ = os.Setenv("GOMMERCE_ENVIRONMENT", env)
 	}
 	_ = godotenv.Load(fmt.Sprintf(".env.%s.local", env))
 	_ = godotenv.Load(".env.local")
