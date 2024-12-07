@@ -34,7 +34,7 @@ func (p *formPasswordLoginProvider) Name() string {
 }
 
 func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, _ string, _ []string) (*models.Login, error) {
-	login, err := p.drs.Logins().FindOneByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
+	login, err := p.drs.Logins().FindByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
 	if err != nil {
 		return nil, err
 	}

@@ -7,5 +7,5 @@ import (
 )
 
 type RealmRepo interface {
-	FindOneByName(ctx context.Context, name string, sqts ...SelectQueryTransformer) (*models.Realm, error)
+	FindByName(ctx context.Context, name string, sqts ...SelectQueryTransformer) (*models.Realm, error)
 }

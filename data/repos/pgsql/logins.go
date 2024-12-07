@@ -20,7 +20,7 @@ func (r *loginRepo) CreateLogin(ctx context.Context, login *models.Login) error 
 	return nil
 }
 
-func (r *loginRepo) FindOneByIdentifier(ctx context.Context, realmId, provider, identifier string, sqts ...repos.SelectQueryTransformer) (*models.Login, error) {
+func (r *loginRepo) FindByIdentifier(ctx context.Context, realmId, provider, identifier string, sqts ...repos.SelectQueryTransformer) (*models.Login, error) {
 	login := new(models.Login)
 	if query, err := repos.TransformSelectQuery(
 		ctx,

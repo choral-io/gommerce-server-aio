@@ -13,7 +13,7 @@ type realmRepo struct {
 	bdb bun.IDB
 }
 
-func (r *realmRepo) FindOneByName(ctx context.Context, name string, sqts ...repos.SelectQueryTransformer) (*models.Realm, error) {
+func (r *realmRepo) FindByName(ctx context.Context, name string, sqts ...repos.SelectQueryTransformer) (*models.Realm, error) {
 	realm := new(models.Realm)
 	if query, err := repos.TransformSelectQuery(ctx, r.bdb.NewSelect().Model(realm).Where(`"name" = ?`, name), sqts...); err != nil {
 		return nil, err

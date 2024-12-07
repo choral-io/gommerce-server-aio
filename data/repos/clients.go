@@ -7,5 +7,5 @@ import (
 )
 
 type ClientRepo interface {
-	FindOneBySecretKey(ctx context.Context, secretKey string, sqts ...SelectQueryTransformer) (*models.Client, error)
+	FindBySecretKey(ctx context.Context, secretKey string, sqts ...SelectQueryTransformer) (*models.Client, error)
 }

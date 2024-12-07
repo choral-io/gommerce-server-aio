@@ -97,7 +97,7 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam_pb.Creat
 			return nil, err
 		}
 	}
-	realm, err := s.drs.Realms().FindOneByName(ctx, req.Realm)
+	realm, err := s.drs.Realms().FindByName(ctx, req.Realm)
 	if err != nil {
 		return nil, fmt.Errorf("realm with name %s not found: %w", req.Realm, err)
 	}
@@ -128,7 +128,7 @@ func (s *tokensServiceServer) CreateToken(ctx context.Context, req *iam_pb.Creat
 	if login.ExpiresAt.Valid && !login.ExpiresAt.Time.After(time.Now()) {
 		return nil, errors.New("login expired")
 	}
-	roles, _, err := s.drs.Roles().FindNamesForUser(ctx, login.User.Id)
+	roles, _, err := s.drs.Roles().FindNamesByUser(ctx, login.User.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query roles: %w", err)
 	}

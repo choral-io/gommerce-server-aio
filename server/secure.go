@@ -47,7 +47,7 @@ func (s *BasicTokenStore) Renew(context.Context, string, time.Duration) (string,
 
 func (s *BasicTokenStore) Verify(ctx context.Context, value string) (*secure.Token, error) {
 	if username, password, err := parseBasicAuth(value); err == nil {
-		client, err := s.drs.Clients().FindOneBySecretKey(ctx, username)
+		client, err := s.drs.Clients().FindBySecretKey(ctx, username)
 		if err != nil {
 			return nil, secure.ErrInvalidToken
 		}

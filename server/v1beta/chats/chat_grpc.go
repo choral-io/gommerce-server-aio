@@ -115,7 +115,7 @@ func (s *ChatsServiceServer) ListSessions(ctx context.Context, req *chats_pb.Lis
 				CreatedAt:   timestamppb.New(m.CreatedAt),
 				UpdatedAt:   sqlpb.FromNullTime(m.UpdatedAt),
 				Permission:  m.Permission,
-				Gender:      gender.FromSqlNullString(m.Profile.Gender),
+				Gender:      sqlpb.EnumFromNullName[gender.Gender](m.Profile.Gender),
 				DisplayName: m.DisplayName.String,
 				AvatarUrl:   sqlpb.FromNullString(m.Profile.AvatarUrl),
 			}
@@ -180,7 +180,7 @@ func (s *ChatsServiceServer) DescribeSession(ctx context.Context, req *chats_pb.
 			CreatedAt:   timestamppb.New(m.CreatedAt),
 			UpdatedAt:   sqlpb.FromNullTime(m.UpdatedAt),
 			Permission:  m.Permission,
-			Gender:      gender.FromSqlNullString(m.Profile.Gender),
+			Gender:      sqlpb.EnumFromNullName[gender.Gender](m.Profile.Gender),
 			DisplayName: m.DisplayName.String,
 			AvatarUrl:   sqlpb.FromNullString(m.Profile.AvatarUrl),
 		}

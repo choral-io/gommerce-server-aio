@@ -14,7 +14,7 @@ type userRepo struct {
 	bdb bun.IDB
 }
 
-func (r *userRepo) FindOneByID(ctx context.Context, id string, sqts ...repos.SelectQueryTransformer) (*models.User, error) {
+func (r *userRepo) FindByID(ctx context.Context, id string, sqts ...repos.SelectQueryTransformer) (*models.User, error) {
 	user := new(models.User)
 	if query, err := repos.TransformSelectQuery(ctx, r.bdb.NewSelect().Model(user).Where(`"user"."id" = ?`, id), sqts...); err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (r *userRepo) FindOneByID(ctx context.Context, id string, sqts ...repos.Sel
 	return user, nil
 }
 
-func (r *userRepo) FindAll(ctx context.Context, sqts ...repos.SelectQueryTransformer) ([]*models.User, int64, error) {
+func (r *userRepo) Find(ctx context.Context, sqts ...repos.SelectQueryTransformer) ([]*models.User, int64, error) {
 	var users []*models.User
 	if query, err := repos.TransformSelectQuery(ctx, r.bdb.NewSelect().Model((*models.User)(nil)), sqts...); err != nil {
 		return nil, 0, err
@@ -37,7 +37,7 @@ func (r *userRepo) FindAll(ctx context.Context, sqts ...repos.SelectQueryTransfo
 	}
 }
 
-func (r *userRepo) CreateUser(ctx context.Context, user *models.User) error {
+func (r *userRepo) Create(ctx context.Context, user *models.User) error {
 	return r.bdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if _, err := tx.NewInsert().Model(user).Exec(ctx); err != nil {
 			return err

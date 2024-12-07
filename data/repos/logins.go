@@ -8,5 +8,5 @@ import (
 
 type LoginRepo interface {
 	CreateLogin(ctx context.Context, login *models.Login) error
-	FindOneByIdentifier(ctx context.Context, realmId, provider, identifier string, sqts ...SelectQueryTransformer) (*models.Login, error)
+	FindByIdentifier(ctx context.Context, realmId, provider, identifier string, sqts ...SelectQueryTransformer) (*models.Login, error)
 }

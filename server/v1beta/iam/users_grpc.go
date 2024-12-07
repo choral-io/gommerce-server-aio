@@ -17,7 +17,6 @@ import (
 	"github.com/choral-io/gommerce-server-aio/data/repos"
 
 	iam_pb "github.com/choral-io/gommerce-protobuf-go/iam/v1beta"
-	gender "github.com/choral-io/gommerce-protobuf-go/types/v1/gender"
 	sqlpb "github.com/choral-io/gommerce-protobuf-go/types/v1/sqlpb"
 )
 
@@ -50,7 +49,7 @@ func (s *usersServiceServer) Authorize(ctx context.Context, procedure string) er
 }
 
 func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterRequest) (*iam_pb.RegisterResponse, error) {
-	realm, err := s.drs.Realms().FindOneByName(ctx, req.Realm)
+	realm, err := s.drs.Realms().FindByName(ctx, req.Realm)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, status.Errorf(codes.InvalidArgument, "realm %s not found", req.Realm)
@@ -69,7 +68,7 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterR
 		Profile: &models.Profile{
 			DisplayName: req.DisplayName.GetValue(),
 			AvatarUrl:   sqlpb.ToNullString(req.AvatarUrl),
-			Gender:      gender.ToSqlNullString(req.Gender),
+			Gender:      sqlpb.EnumToNullName(req.Gender),
 		},
 	}
 	if user.Profile.DisplayName == "" {
@@ -93,7 +92,7 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterR
 		login.Credential = sql.NullString{Valid: true, String: string(hp)}
 	}
 	err = s.drs.RunInTx(ctx, nil, func(ctx context.Context, drst repos.DataRepos) error {
-		if err := drst.Users().CreateUser(ctx, &user); err != nil {
+		if err := drst.Users().Create(ctx, &user); err != nil {
 			return status.Errorf(codes.Unknown, "error creating user: %v", err)
 		}
 		login.UserId = user.Id
@@ -111,7 +110,7 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterR
 }
 
 func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam_pb.ListUsersRequest) (*iam_pb.ListUsersResponse, error) {
-	users, total, err := s.drs.Users().FindAll(
+	users, total, err := s.drs.Users().Find(
 		ctx,
 		repos.WithPagination(req),
 		repos.WithRelation("Realm", "name"),
@@ -134,7 +133,7 @@ func (s *usersServiceServer) ListUsers(ctx context.Context, req *iam_pb.ListUser
 }
 
 func (s *usersServiceServer) GetIdentity(ctx context.Context, _ *iam_pb.GetIdentityRequest) (*iam_pb.GetIdentityResponse, error) {
-	user, err := s.drs.Users().FindOneByID(
+	user, err := s.drs.Users().FindByID(
 		ctx,
 		secure.IdentityFromContext(ctx).Token().Subject(),
 		repos.WithRelation("Realm", "name"),

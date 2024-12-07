@@ -13,7 +13,7 @@ type clientRepo struct {
 	bdb bun.IDB
 }
 
-func (r *clientRepo) FindOneBySecretKey(ctx context.Context, secretKey string, sqts ...repos.SelectQueryTransformer) (*models.Client, error) {
+func (r *clientRepo) FindBySecretKey(ctx context.Context, secretKey string, sqts ...repos.SelectQueryTransformer) (*models.Client, error) {
 	client := new(models.Client)
 	if query, err := repos.TransformSelectQuery(
 		ctx,

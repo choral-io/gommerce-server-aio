@@ -5,5 +5,5 @@ import (
 )
 
 type RoleRepo interface {
-	FindNamesForUser(ctx context.Context, userId string, sqts ...SelectQueryTransformer) ([]string, int64, error)
+	FindNamesByUser(ctx context.Context, userId string, sqts ...SelectQueryTransformer) ([]string, int64, error)
 }

@@ -13,7 +13,7 @@ type roleRepo struct {
 	bdb bun.IDB
 }
 
-func (r *roleRepo) FindNamesForUser(ctx context.Context, userId string, sqts ...repos.SelectQueryTransformer) ([]string, int64, error) {
+func (r *roleRepo) FindNamesByUser(ctx context.Context, userId string, sqts ...repos.SelectQueryTransformer) ([]string, int64, error) {
 	var roles []string
 	if total, err := r.bdb.NewSelect().Model((*models.RoleUser)(nil)).
 		Relation("Role", func(sq *bun.SelectQuery) *bun.SelectQuery { return sq.ExcludeColumn("*") }).
