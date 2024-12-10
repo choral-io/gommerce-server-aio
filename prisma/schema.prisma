@@ -35,7 +35,7 @@ model User {
   firstLoginTime DateTime?     @map("first_login_time") @db.Timestamp(6)
   lastActiveTime DateTime?     @map("last_active_time") @db.Timestamp(6)
   flags          BigInt
-  attributes     Json?
+  attributes     Json
   phoneNumber    String?       @map("phone_number") @db.VarChar(64)
   emailAddress   String?       @map("email_address") @db.VarChar(128)
   description    String?       @db.VarChar(255)
@@ -147,7 +147,7 @@ model Login {
   provider   String    @db.VarChar(16)
   identifier String    @db.VarChar(64)
   credential String?   @db.VarChar(64)
-  metadata   Json?
+  metadata   Json
   user       User      @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_logins_users_user_id")
 
   @@unique([provider, identifier], map: "ix_logins_provider_identifier")
@@ -162,7 +162,7 @@ model Device {
   updatedAt   DateTime?    @map("updated_at") @db.Timestamp(6)
   traceCode   String       @unique(map: "ix_devices_trace_code") @map("trace_code") @db.VarChar(64)
   pushToken   String?      @map("push_token") @db.VarChar(128)
-  metadata    Json?
+  metadata    Json
   client      Client       @relation(fields: [clientId], references: [id], onUpdate: Restrict, map: "fk_devices_users_client_id")
   user        User?        @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_devices_users_user_id")
   userDevices UserDevice[]

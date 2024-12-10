@@ -50,6 +50,39 @@ func WithPagination(p interface {
 	})
 }
 
+// WithColumns is a bun.SelectQuery transformer that adds columns to the query.
+// The columns to include/exclude can be specified as variadic arguments.
+// To exclude a column, prefix it with a minus sign.
+//
+// - Parameters:
+//   - columns: The columns to include/exclude.
+//
+// Example 1: WithColumns("id", "name")
+//
+// Example 2: WithColumns("id", "-name")
+//
+// Example 3: WithColumns("-*", "name")
+func WithColumns(columns ...string) SelectQueryTransformer {
+	return SelectQueryTransformerFunc(func(ctx context.Context, sq *bun.SelectQuery) (*bun.SelectQuery, error) {
+		if len(columns) > 0 {
+			includes := make([]string, 0, len(columns))
+			excludes := make([]string, 0, len(columns))
+			for _, col := range columns {
+				if col != "" {
+					if col[0] == '-' {
+						excludes = append(excludes, col[1:])
+					} else {
+						includes = append(includes, col)
+					}
+				}
+			}
+			return sq.Column(includes...).ExcludeColumn(excludes...), nil
+		} else {
+			return sq, nil
+		}
+	})
+}
+
 // WithRelation is a bun.SelectQuery transformer that adds a relation to the query.
 // The columns to include/exclude can be specified as variadic arguments.
 // To exclude a column, prefix it with a minus sign.
