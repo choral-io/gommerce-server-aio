@@ -24,6 +24,7 @@ import (
 	"github.com/choral-io/gommerce-server-core/server"
 
 	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
+	"github.com/choral-io/gommerce-server-aio/data/models"
 	repos "github.com/choral-io/gommerce-server-aio/data/repos/pgsql"
 	srv "github.com/choral-io/gommerce-server-aio/server"
 	srv1 "github.com/choral-io/gommerce-server-aio/server/v1"
@@ -80,6 +81,7 @@ func main() {
 		),
 		fx.Invoke(logging.SetDefaultLogger), // set default logger
 		fx.Invoke(data.SetDefaultIdWorker),  // set default id worker
+		fx.Invoke(models.RegisterModels),    // register models
 		fx.Invoke( // register db connection to lifecycle
 			func(bdb bun.IDB, lc fx.Lifecycle) {
 				lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
