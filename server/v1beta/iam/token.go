@@ -3,13 +3,29 @@ package iam_v1beta
 import (
 	"context"
 	"errors"
-	"fmt"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-aio/data/repos"
 )
+
+func validatePassword(login *models.Login, password string) error {
+	if login == nil || !login.Credential.Valid {
+		return errors.New("password not set")
+	}
+	if login.Disabled {
+		return errors.New("password disabled")
+	}
+	if login.ExpiresAt.Valid && login.ExpiresAt.Time.Before(time.Now()) {
+		return errors.New("password expired")
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(login.Credential.String), []byte(password)); err != nil {
+		return errors.New("password not match")
+	}
+	return nil
+}
 
 const (
 	LoginProviderFormPassword = models.LoginProviderFormPassword
@@ -38,25 +54,44 @@ func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username
 	if err != nil {
 		return nil, err
 	}
-	if !login.Credential.Valid {
-		return nil, errors.New("password not set")
-	}
-	if err := bcrypt.CompareHashAndPassword([]byte(login.Credential.String), []byte(password)); err != nil {
-		return nil, errors.New("password not match")
+	if err := validatePassword(login, password); err != nil {
+		return nil, err
 	}
 	return login, nil
 }
 
-type smsOTPCodeLoginProvider struct{}
+type smsOTPCodeLoginProvider struct {
+	drs repos.DataRepos
+}
 
-func NewSMSOTPCodeLoginProvider() LoginProvider {
-	return &smsOTPCodeLoginProvider{}
+func NewSMSOTPCodeLoginProvider(drs repos.DataRepos) LoginProvider {
+	return &smsOTPCodeLoginProvider{
+		drs: drs,
+	}
 }
 
 func (p *smsOTPCodeLoginProvider) Name() string {
 	return LoginProviderSmsOtpCode
 }
 
-func (p *smsOTPCodeLoginProvider) Login(context.Context, string, string, string, string, []string) (*models.Login, error) {
-	return nil, fmt.Errorf("login provider '%s' not implemented", p.Name())
+func (p *smsOTPCodeLoginProvider) Login(ctx context.Context, realmId, username, password, _ string, _ []string) (*models.Login, error) {
+	var login *models.Login
+	err := p.drs.RunInTx(ctx, nil, func(ctx context.Context, dr repos.DataRepos) error {
+		var err error
+		login, err = dr.Logins().FindByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
+		if err != nil {
+			return err
+		}
+		if err := validatePassword(login, password); err != nil {
+			return err
+		}
+		if err := dr.Logins().DisableById(ctx, login.Id); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return login, nil
 }

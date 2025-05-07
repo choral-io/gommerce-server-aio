@@ -61,7 +61,7 @@ func NewTokensServiceServer(cfg config.SecureTokenConfig, drs repos.DataRepos, t
 	}
 
 	s.lps[LoginProviderFormPassword] = NewFormPasswordLoginProvider(drs)
-	s.lps[LoginProviderSmsOtpCode] = NewSMSOTPCodeLoginProvider()
+	s.lps[LoginProviderSmsOtpCode] = NewSMSOTPCodeLoginProvider(drs)
 
 	return s
 }

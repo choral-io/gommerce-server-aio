@@ -16,6 +16,7 @@ model Realm {
   description String?   @db.VarChar(255)
   roles       Role[]
   users       User[]
+  logins      Login[]
 
   @@map("realms")
 }
@@ -137,6 +138,7 @@ model RoleUser {
 
 model Login {
   id         String    @id @db.VarChar(16)
+  realmId    String    @map("realm_id") @db.VarChar(16)
   userId     String    @map("user_id") @db.VarChar(16)
   disabled   Boolean   @default(false)
   immutable  Boolean   @default(false)
@@ -148,9 +150,10 @@ model Login {
   identifier String    @db.VarChar(64)
   credential String?   @db.VarChar(64)
   metadata   Json
+  realm      Realm     @relation(fields: [realmId], references: [id], onUpdate: Restrict, map: "fk_logins_realms_realm_id")
   user       User      @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_logins_users_user_id")
 
-  @@unique([provider, identifier], map: "ix_logins_provider_identifier")
+  @@unique([realmId, provider, identifier], map: "ix_logins_realm_id_provider_identifier")
   @@map("logins")
 }
 

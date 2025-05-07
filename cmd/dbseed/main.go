@@ -164,6 +164,7 @@ func seed(ctx context.Context) error {
 		}
 
 		adminLogin := models.Login{
+			RealmId:    adminUser.RealmId,
 			UserId:     adminUser.Id,
 			Immutable:  true,
 			Provider:   models.LoginProviderFormPassword,

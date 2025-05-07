@@ -25,9 +25,9 @@ func (r *loginRepo) FindByIdentifier(ctx context.Context, realmId, provider, ide
 	if query, err := repos.TransformSelectQuery(
 		ctx,
 		r.bdb.NewSelect().Model(login).
+			Where(`"login"."realm_id" = ?`, realmId).
 			Where(`"login"."provider" = ?`, provider).
-			Where(`"login"."identifier" = ?`, identifier).
-			Where(`"user"."realm_id" = ?`, realmId),
+			Where(`"login"."identifier" = ?`, identifier),
 		sqts...,
 	); err != nil {
 		return nil, err
@@ -35,4 +35,14 @@ func (r *loginRepo) FindByIdentifier(ctx context.Context, realmId, provider, ide
 		return nil, err
 	}
 	return login, nil
+}
+
+func (r *loginRepo) DisableById(ctx context.Context, id string) error {
+	if _, err := r.bdb.NewUpdate().Model((*models.Login)(nil)).
+		Set("disabled = true").
+		Where("id = ?", id).
+		Exec(ctx); err != nil {
+		return err
+	}
+	return nil
 }

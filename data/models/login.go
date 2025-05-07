@@ -20,6 +20,7 @@ type Login struct {
 
 	// Columns
 	Id         string            `bun:"id,pk"`
+	RealmId    string            `bun:"realm_id"`
 	UserId     string            `bun:"user_id"`
 	Disabled   bool              `bun:"disabled"`
 	Immutable  bool              `bun:"immutable"`
@@ -33,7 +34,8 @@ type Login struct {
 	Metadata   map[string]string `bun:"metadata,json_use_number"`
 
 	// Relations
-	User *User `bun:"rel:belongs-to,join:user_id=id"`
+	Realm *Realm `bun:"rel:belongs-to,join:realm_id=id"`
+	User  *User  `bun:"rel:belongs-to,join:user_id=id"`
 }
 
 func (m *Login) BeforeAppendModel(_ context.Context, query bun.Query) error {
