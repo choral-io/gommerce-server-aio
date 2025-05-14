@@ -173,7 +173,7 @@ func seed(ctx context.Context) error {
 		}
 		if pwd, err := secure.RandString(16, b58Chars); err != nil {
 			return err
-		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err != nil {
+		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), 12); err != nil {
 			return err
 		} else {
 			adminLogin.Credential = sql.NullString{Valid: true, String: string(hp)}
@@ -206,7 +206,7 @@ func seed(ctx context.Context) error {
 		}
 		if pwd, err := secure.RandString(32, b58Chars); err != nil {
 			return err
-		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err != nil {
+		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), 12); err != nil {
 			return err
 		} else {
 			consoleClient.SecretCode = sql.NullString{Valid: true, String: string(hp)}

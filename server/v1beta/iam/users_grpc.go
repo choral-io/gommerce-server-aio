@@ -86,7 +86,7 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterR
 		Identifier: req.Username,
 		Metadata:   map[string]string{},
 	}
-	if hp, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost); err != nil {
+	if hp, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12); err != nil {
 		return nil, status.Errorf(codes.Unknown, "error hashing password: %v", err)
 	} else {
 		login.Credential = sql.NullString{Valid: true, String: string(hp)}

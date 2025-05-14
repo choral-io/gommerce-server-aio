@@ -115,7 +115,7 @@ func (s *PasswordServiceServer) HashPassword(_ context.Context, req *utils_pb.Ha
 		err := errors.New("provided password must not be empty")
 		return nil, err
 	}
-	if value, err := bcrypt.GenerateFromPassword([]byte(req.Value), bcrypt.DefaultCost); err == nil {
+	if value, err := bcrypt.GenerateFromPassword([]byte(req.Value), 12); err == nil {
 		return &utils_pb.HashPasswordResponse{
 			Value: string(value),
 		}, nil
