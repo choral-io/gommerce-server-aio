@@ -17,6 +17,7 @@ import (
 
 	"github.com/choral-io/gommerce-server-core/config"
 	"github.com/choral-io/gommerce-server-core/data"
+	"github.com/choral-io/gommerce-server-core/dlock"
 	"github.com/choral-io/gommerce-server-core/events"
 	"github.com/choral-io/gommerce-server-core/logging"
 	"github.com/choral-io/gommerce-server-core/otel"
@@ -48,7 +49,9 @@ func main() {
 		fx.Provide(otel.NewServerResource),                        // provide server resource for opentelemetry
 		fx.Provide(otel.NewTracerProvider),                        // provide tracer provider for opentelemetry
 		fx.Provide(otel.NewMeterProvider),                         // provide meter provider for opentelemetry
-		fx.Provide(data.NewRedisClient, data.NewRedisSeq),         // provide redis client and redis seq
+		fx.Provide(data.NewRedisClient),                           // provide redis client
+		fx.Provide(data.NewRedisSeq),                              // provide redis seq
+		fx.Provide(dlock.NewRedisLocker),                          // provide redis locker
 		fx.Provide(data.NewIdWorker),                              // provide id worker
 		fx.Provide(data.NewBunDB),                                 // provide bun db
 		fx.Provide(repos.NewDataRepos),                            // provide data repos
@@ -86,6 +89,13 @@ func main() {
 			func(bdb bun.IDB, lc fx.Lifecycle) {
 				lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
 					return bdb.NewSelect().DB().Close()
+				}})
+			}),
+		fx.Invoke( // register distributed locker to lifecycle
+			func(locker dlock.Locker, lc fx.Lifecycle) {
+				lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
+					locker.Close()
+					return nil
 				}})
 			}),
 		fx.Invoke( // register nats connection to lifecycle
