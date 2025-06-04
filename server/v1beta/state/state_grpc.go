@@ -10,6 +10,8 @@ import (
 	"github.com/redis/rueidis"
 	"google.golang.org/grpc"
 
+	"github.com/choral-io/gommerce-server-core/config"
+	"github.com/choral-io/gommerce-server-core/logging"
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/validator"
 
@@ -24,13 +26,34 @@ const (
 type stateStoreServiceServer struct {
 	state_pb.UnimplementedStateStoreServiceServer
 
-	rdb rueidis.Client
+	skt    string // storage key template
+	rdb    rueidis.Client
+	logger logging.Logger
 }
 
-func NewStateStoreServiceServer(rdb rueidis.Client) state_pb.StateStoreServiceServer {
-	return &stateStoreServiceServer{
-		rdb: rdb,
+func NewStateStoreServiceServer(rdb rueidis.Client, cfg config.RootConfig, logger logging.Logger) state_pb.StateStoreServiceServer {
+	svc := &stateStoreServiceServer{
+		skt:    StorageKeyTemplate, // default storage key template
+		rdb:    rdb,
+		logger: logger,
 	}
+	skt, err := cfg.GetValue("services.state.storage.key-template")
+	if err != nil {
+		logger.Error(context.Background(), "failed to get storage key template", "error", err)
+		skt = StorageKeyTemplate // fallback to default template
+		logger.Warn(context.Background(), "using default storage key template", "template", skt)
+	}
+	if sv, ok := skt.(string); ok {
+		if sv == "" {
+			logger.Warn(context.Background(), "empty storage key template, using default", "default", StorageKeyTemplate)
+		} else {
+			logger.Info(context.Background(), "using custom storage key template", "template", sv)
+			svc.skt = sv // set the storage key template from config if available
+		}
+	} else {
+		logger.Warn(context.Background(), "invalid storage key template type, using default", "type", fmt.Sprintf("%T", skt))
+	}
+	return svc
 }
 
 func (s *stateStoreServiceServer) RegisterServerService(reg grpc.ServiceRegistrar) {
@@ -47,7 +70,7 @@ func (s *stateStoreServiceServer) Authorize(ctx context.Context, _ string) error
 
 func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state_pb.GetStateRequest) (*state_pb.GetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
-	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
+	key := fmt.Sprintf(s.skt, sub, req.GetKey())
 	cmd := s.rdb.B().Get().Key(key)
 	data, err := s.rdb.Do(ctx, cmd.Build()).AsBytes()
 	if err != nil && !errors.Is(err, rueidis.Nil) {
@@ -60,7 +83,7 @@ func (s *stateStoreServiceServer) GetState(ctx context.Context, req *state_pb.Ge
 
 func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state_pb.SetStateRequest) (*state_pb.SetStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
-	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
+	key := fmt.Sprintf(s.skt, sub, req.GetKey())
 	cmd := s.rdb.B().Set().Key(key).Value(rueidis.BinaryString(req.GetData()))
 	if val, ok := req.Metadata[TtlInSecondsKey]; ok {
 		ttl, err := strconv.ParseInt(val, 10, 0)
@@ -78,7 +101,7 @@ func (s *stateStoreServiceServer) SetState(ctx context.Context, req *state_pb.Se
 
 func (s *stateStoreServiceServer) DelState(ctx context.Context, req *state_pb.DelStateRequest) (*state_pb.DelStateResponse, error) {
 	sub := secure.IdentityFromContext(ctx).Token().Subject()
-	key := fmt.Sprintf(StorageKeyTemplate, sub, req.GetKey())
+	key := fmt.Sprintf(s.skt, sub, req.GetKey())
 	cmd := s.rdb.B().Del().Key(key)
 	err := s.rdb.Do(ctx, cmd.Build()).Error()
 	if err != nil {
