@@ -37,21 +37,15 @@ func NewStateStoreServiceServer(rdb rueidis.Client, cfg config.RootConfig, logge
 		rdb:    rdb,
 		logger: logger,
 	}
-	skt, err := cfg.GetValue("services.state.storage.key-template")
-	if err != nil {
-		logger.Error(context.Background(), "failed to get storage key template", "error", err)
-		skt = StorageKeyTemplate // fallback to default template
-		logger.Warn(context.Background(), "using default storage key template", "template", skt)
-	}
-	if sv, ok := skt.(string); ok {
-		if sv == "" {
-			logger.Warn(context.Background(), "empty storage key template, using default", "default", StorageKeyTemplate)
-		} else {
-			logger.Info(context.Background(), "using custom storage key template", "template", sv)
-			svc.skt = sv // set the storage key template from config if available
-		}
+	if err := cfg.GetValue("$.services.state.storage.key-template", &svc.skt); err != nil {
+		logger.Error(context.Background(), "failed to read storage key template from config", "error", err)
+		svc.skt = StorageKeyTemplate
+		logger.Warn(context.Background(), "using default storage key template", "template", svc.skt)
+	} else if svc.skt == "" {
+		logger.Warn(context.Background(), "storage key template is empty, using default", "default_template", StorageKeyTemplate)
+		svc.skt = StorageKeyTemplate // fallback to default if empty
 	} else {
-		logger.Warn(context.Background(), "invalid storage key template type, using default", "type", fmt.Sprintf("%T", skt))
+		logger.Info(context.Background(), "using custom storage key template", "template", svc.skt)
 	}
 	return svc
 }
