@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,8 +11,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/driver/pgdriver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 
@@ -24,14 +27,20 @@ import (
 	"github.com/choral-io/gommerce-server-core/secure"
 	"github.com/choral-io/gommerce-server-core/server"
 
-	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
-	"github.com/choral-io/gommerce-server-aio/data/models"
+	models "github.com/choral-io/gommerce-server-aio/data/models"
 	repos "github.com/choral-io/gommerce-server-aio/data/repos/pgsql"
 	srv "github.com/choral-io/gommerce-server-aio/server"
 	srv1 "github.com/choral-io/gommerce-server-aio/server/v1"
 	srv1b "github.com/choral-io/gommerce-server-aio/server/v1beta"
-	"github.com/choral-io/gommerce-server-aio/static"
+	static "github.com/choral-io/gommerce-server-aio/static"
 )
+
+func init() {
+	// set GOMAXPROCS to match the Linux container CPU quota
+	maxprocs.Set()
+	// alias pg to pgsql
+	sql.Register("pgsql", pgdriver.NewDriver())
+}
 
 func main() {
 	env, ok := os.LookupEnv("GOMMERCE_ENVIRONMENT")
@@ -82,6 +91,13 @@ func main() {
 				)
 			}, fx.ParamTags(srv.ServerRegistrationsTag)),
 		),
+		fx.Invoke( // set GOMAXPROCS to match the Linux container CPU quota
+			func(l logging.Logger) error {
+				_, err := maxprocs.Set(maxprocs.Logger(func(s string, i ...any) {
+					l.Info(context.Background(), fmt.Sprintf(s, i...))
+				}))
+				return err
+			}),
 		fx.Invoke(logging.SetDefaultLogger), // set default logger
 		fx.Invoke(data.SetDefaultIdWorker),  // set default id worker
 		fx.Invoke(models.RegisterModels),    // register models

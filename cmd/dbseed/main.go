@@ -12,14 +12,18 @@ import (
 	"github.com/uptrace/bun/dialect/mssqldialect"
 	"github.com/uptrace/bun/dialect/mysqldialect"
 	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/schema"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/choral-io/gommerce-server-core/secure"
-
-	_ "github.com/choral-io/gommerce-server-aio/data/drivers" // register db drivers
 	"github.com/choral-io/gommerce-server-aio/data/models"
+	"github.com/choral-io/gommerce-server-core/secure"
 )
+
+func init() {
+	// alias pg to pgsql
+	sql.Register("pgsql", pgdriver.NewDriver())
+}
 
 const (
 	ansiReset  = "\033[0m"
