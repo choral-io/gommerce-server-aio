@@ -11,15 +11,15 @@ import (
 	"github.com/choral-io/gommerce-server-core/server"
 )
 
-const ServerRegistrationsTag = `group:"server/grpc.registrations"`
-
-var serverRegistrationsAnns = []fx.Annotation{fx.As((*any)(nil)), fx.ResultTags(ServerRegistrationsTag)}
-
 func NewSelectorMatcher() selector.Matcher {
 	return selector.MatchFunc(func(ctx context.Context, callMeta interceptors.CallMeta) bool {
 		return strings.HasPrefix(callMeta.Service, "gommerce.")
 	})
 }
+
+const ServerRegistrationsTag = `group:"server/grpc.registrations"`
+
+var serverRegistrationsAnns = []fx.Annotation{fx.As((*any)(nil)), fx.ResultTags(ServerRegistrationsTag)}
 
 func AnnotateRegistrations(reg ...any) []any {
 	res := make([]any, 0, len(reg))

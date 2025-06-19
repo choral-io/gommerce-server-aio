@@ -15,9 +15,7 @@ type dataRepos struct {
 
 func (r *dataRepos) RunInTx(ctx context.Context, opts *sql.TxOptions, f func(ctx context.Context, drs repos.DataRepos) error) error {
 	return r.bdb.RunInTx(ctx, opts, func(ctx context.Context, tx bun.Tx) error {
-		n := *r
-		n.bdb = tx
-		return f(ctx, &n)
+		return f(ctx, NewDataRepos(tx))
 	})
 }
 
