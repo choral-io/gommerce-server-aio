@@ -37,7 +37,9 @@ import (
 
 func init() {
 	// set GOMAXPROCS to match the Linux container CPU quota
-	maxprocs.Set()
+	if _, err := maxprocs.Set(); err != nil {
+		panic(fmt.Errorf("failed to set GOMAXPROCS: %w", err))
+	}
 	// alias pg to pgsql
 	sql.Register("pgsql", pgdriver.NewDriver())
 }

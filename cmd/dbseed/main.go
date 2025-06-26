@@ -76,7 +76,9 @@ func seed(ctx context.Context) error {
 			return err
 		}
 		bdb = bun.NewDB(sdb, dialect, bun.WithDiscardUnknownColumns())
-		models.RegisterModels(bdb)
+		if err := models.RegisterModels(bdb); err != nil {
+			return err
+		}
 	}
 
 	// insert data
