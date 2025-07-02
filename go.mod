@@ -15,7 +15,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.94
 	github.com/nats-io/nats.go v1.43.0
-	github.com/redis/rueidis v1.0.61
+	github.com/redis/rueidis v1.0.62
 	github.com/uptrace/bun v1.2.14
 	github.com/uptrace/bun/dialect/mssqldialect v1.2.14
 	github.com/uptrace/bun/dialect/mysqldialect v1.2.14
@@ -51,7 +51,7 @@ require (
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
-	github.com/redis/rueidis/rueidisotel v1.0.61 // indirect
+	github.com/redis/rueidis/rueidisotel v1.0.62 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
