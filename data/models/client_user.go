@@ -20,15 +20,24 @@ type ClientUser struct {
 	DeletedAt sql.NullTime `bun:"deleted_at,soft_delete,nullzero"`
 }
 
-func (m *ClientUser) BeforeAppendModel(_ context.Context, query bun.Query) error {
+func (m *ClientUser) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		m.CreatedAt = time.Now()
-		m.Immutable = false
 		m.UpdatedAt = sql.NullTime{Valid: false}
 		m.DeletedAt = sql.NullTime{Valid: false}
+		if !SeedingMode(ctx) {
+			m.Immutable = false
+		}
 	case *bun.UpdateQuery:
 		m.UpdatedAt = sql.NullTime{Valid: true, Time: time.Now()}
+		if m.Immutable {
+			return ErrImmutableModel
+		}
+	case *bun.DeleteQuery:
+		if m.Immutable {
+			return ErrImmutableModel
+		}
 	}
 	return nil
 }

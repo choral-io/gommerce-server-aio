@@ -36,6 +36,7 @@ const (
 
 func main() {
 	_ = godotenv.Load("prisma/.env")
+	os.Setenv("DATA_SEEDING_MODE", "true")
 	log.SetFlags(0)
 	log.Printf("%sSeeding database...%s", ansiBlue, ansiReset)
 	if err := seed(context.Background()); err != nil {
@@ -93,29 +94,6 @@ func seed(ctx context.Context) error {
 			return err
 		}
 
-		systemUser := models.User{
-			RealmId:   systemRealm.Id,
-			Approved:  true,
-			Verified:  true,
-			Immutable: true,
-			Flags:     0b0000,
-			Attributes: map[string]string{
-				models.USER_PROFILE_DISPLAY_NAME_ATTRIBUTE: "$SYSTEM",
-			},
-			Description: sql.NullString{Valid: true, String: "Built-in system user."},
-		}
-		if _, err := tx.NewInsert().Model(&systemUser).Exec(ctx); err != nil {
-			return err
-		}
-
-		systemProfile := models.Profile{
-			Id:          systemUser.Id,
-			DisplayName: "$SYSTEM",
-		}
-		if _, err := tx.NewInsert().Model(&systemProfile).Exec(ctx); err != nil {
-			return err
-		}
-
 		adminRealm := models.Realm{
 			Immutable: true,
 			Flags:     0b0000,
@@ -136,13 +114,26 @@ func seed(ctx context.Context) error {
 			return err
 		}
 
-		adminRole := models.Role{
-			RealmId:     adminRealm.Id,
-			Immutable:   true,
-			Name:        "Admin",
-			Description: sql.NullString{Valid: true, String: "Built-in admin role."},
+		systemUser := models.User{
+			RealmId:   systemRealm.Id,
+			Approved:  true,
+			Verified:  true,
+			Immutable: true,
+			Flags:     0b0000,
+			Attributes: map[string]string{
+				models.USER_PROFILE_DISPLAY_NAME_ATTRIBUTE: "$SYSTEM",
+			},
+			Description: sql.NullString{Valid: true, String: "Built-in system user."},
 		}
-		if _, err := tx.NewInsert().Model(&adminRole).Exec(ctx); err != nil {
+		if _, err := tx.NewInsert().Model(&systemUser).Exec(ctx); err != nil {
+			return err
+		}
+
+		systemProfile := models.Profile{
+			Id:          systemUser.Id,
+			DisplayName: "$SYSTEM",
+		}
+		if _, err := tx.NewInsert().Model(&systemProfile).Exec(ctx); err != nil {
 			return err
 		}
 
@@ -189,6 +180,16 @@ func seed(ctx context.Context) error {
 			return err
 		}
 
+		adminRole := models.Role{
+			RealmId:     adminRealm.Id,
+			Immutable:   true,
+			Name:        "Admin",
+			Description: sql.NullString{Valid: true, String: "Built-in admin role."},
+		}
+		if _, err := tx.NewInsert().Model(&adminRole).Exec(ctx); err != nil {
+			return err
+		}
+
 		roleUsers := []models.RoleUser{
 			{
 				RoleId:    adminRole.Id,
@@ -202,7 +203,7 @@ func seed(ctx context.Context) error {
 
 		consoleClient := models.Client{
 			Immutable:   true,
-			Description: sql.NullString{Valid: true, String: "Web-based console client."},
+			Description: sql.NullString{Valid: true, String: "Management console client."},
 		}
 		if pwd, err := secure.RandString(16, b58Chars); err != nil {
 			return err
@@ -219,6 +220,28 @@ func seed(ctx context.Context) error {
 			log.Printf("%susing randomly generated secret code for console client: %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
 		}
 		if _, err := tx.NewInsert().Model(&consoleClient).Exec(ctx); err != nil {
+			return err
+		}
+
+		portalClient := models.Client{
+			Immutable:   true,
+			Description: sql.NullString{Valid: true, String: "User portal client."},
+		}
+		if pwd, err := secure.RandString(16, b58Chars); err != nil {
+			return err
+		} else {
+			portalClient.SecretKey = pwd
+			log.Printf("%susing randomly generated secret key for portal client:   %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
+		}
+		if pwd, err := secure.RandString(32, b58Chars); err != nil {
+			return err
+		} else if hp, err := bcrypt.GenerateFromPassword([]byte(pwd), 12); err != nil {
+			return err
+		} else {
+			portalClient.SecretCode = sql.NullString{Valid: true, String: string(hp)}
+			log.Printf("%susing randomly generated secret code for portal client:  %s%s%s", ansiBlue, ansiYellow, pwd, ansiReset)
+		}
+		if _, err := tx.NewInsert().Model(&portalClient).Exec(ctx); err != nil {
 			return err
 		}
 
