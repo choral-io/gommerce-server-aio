@@ -2,10 +2,13 @@ package iam_v1beta
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/choral-io/gommerce-server-aio/data/models"
 	"github.com/choral-io/gommerce-server-aio/data/repos"
@@ -50,11 +53,22 @@ func (p *formPasswordLoginProvider) Name() string {
 }
 
 func (p *formPasswordLoginProvider) Login(ctx context.Context, realmId, username, password, _ string, _ []string) (*models.Login, error) {
-	login, err := p.drs.Logins().FindByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
+	var login *models.Login
+	err := p.drs.RunInTx(ctx, nil, func(ctx context.Context, dr repos.DataRepos) error {
+		var err error
+		login, err = dr.Logins().FindByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
+		if err == sql.ErrNoRows {
+			return status.Error(codes.InvalidArgument, "login not found")
+		}
+		if err != nil {
+			return err
+		}
+		if err := validatePassword(login, password); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	if err := validatePassword(login, password); err != nil {
 		return nil, err
 	}
 	return login, nil
@@ -79,6 +93,9 @@ func (p *smsOTPCodeLoginProvider) Login(ctx context.Context, realmId, username, 
 	err := p.drs.RunInTx(ctx, nil, func(ctx context.Context, dr repos.DataRepos) error {
 		var err error
 		login, err = dr.Logins().FindByIdentifier(ctx, realmId, p.Name(), username, repos.WithRelation("User"))
+		if err == sql.ErrNoRows {
+			return status.Error(codes.InvalidArgument, "login not found")
+		}
 		if err != nil {
 			return err
 		}
