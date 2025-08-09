@@ -23,5 +23,5 @@ func RegisterModels(bdb bun.IDB) error {
 
 // SeedingMode checks if the application is running in seeding mode.
 func SeedingMode(_ context.Context) bool {
-	return strings.EqualFold(os.Getenv("DATA_SEEDING_MODE"), "true")
+	return strings.EqualFold(os.Getenv("GOMMERCE_SEEDING_MODE"), "true")
 }

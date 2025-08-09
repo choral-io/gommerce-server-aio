@@ -36,7 +36,7 @@ const (
 
 func main() {
 	_ = godotenv.Load("prisma/.env")
-	os.Setenv("DATA_SEEDING_MODE", "true")
+	os.Setenv("GOMMERCE_SEEDING_MODE", "true")
 	log.SetFlags(0)
 	log.Printf("%sSeeding database...%s", ansiBlue, ansiReset)
 	if err := seed(context.Background()); err != nil {
