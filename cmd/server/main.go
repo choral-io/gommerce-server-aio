@@ -14,7 +14,6 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 
@@ -36,10 +35,6 @@ import (
 )
 
 func init() {
-	// set GOMAXPROCS to match the Linux container CPU quota
-	if _, err := maxprocs.Set(); err != nil {
-		panic(fmt.Errorf("failed to set GOMAXPROCS: %w", err))
-	}
 	// alias pg to pgsql
 	sql.Register("pgsql", pgdriver.NewDriver())
 }
@@ -93,13 +88,6 @@ func main() {
 				)
 			}, fx.ParamTags(srv.ServerRegistrationsTag)),
 		),
-		fx.Invoke( // set GOMAXPROCS to match the Linux container CPU quota
-			func(l logging.Logger) error {
-				_, err := maxprocs.Set(maxprocs.Logger(func(s string, i ...any) {
-					l.Info(context.Background(), fmt.Sprintf(s, i...))
-				}))
-				return err
-			}),
 		fx.Invoke(logging.SetDefaultLogger), // set default logger
 		fx.Invoke(data.SetDefaultIdWorker),  // set default id worker
 		fx.Invoke(models.RegisterModels),    // register models
