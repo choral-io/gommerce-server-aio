@@ -11,10 +11,10 @@ require (
 	github.com/choral-io/gommerce-server-core v0.0.0
 	github.com/coder/websocket v1.8.13
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.95
-	github.com/nats-io/nats.go v1.44.0
+	github.com/nats-io/nats.go v1.45.0
 	github.com/redis/rueidis v1.0.64
 	github.com/uptrace/bun v1.2.15
 	github.com/uptrace/bun/dialect/mssqldialect v1.2.15
@@ -26,7 +26,7 @@ require (
 	go.uber.org/fx v1.24.0
 	golang.org/x/crypto v0.41.0
 	google.golang.org/grpc v1.75.0
-	google.golang.org/protobuf v1.36.7
+	google.golang.org/protobuf v1.36.8
 )
 
 require (
