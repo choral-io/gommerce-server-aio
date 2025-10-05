@@ -34,7 +34,7 @@ func (m *ChatRecord) BeforeAppendModel(_ context.Context, query bun.Query) error
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {
-			m.Id = data.DefaultIdWorker().NextHex()
+			m.Id = data.DefaultIDWorker().NextHex()
 		}
 		m.UpdatedAt = sql.NullTime{Valid: false}
 		m.DeletedAt = sql.NullTime{Valid: false}

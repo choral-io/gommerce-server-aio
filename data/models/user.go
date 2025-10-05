@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	USER_PROFILE_DISPLAY_NAME_ATTRIBUTE = "profile.display_name"
-	USER_PROFILE_AVATAR_URL_ATTRIBUTE   = "profile.avatar_url"
-	USER_PROFILE_GENDER_ATTRIBUTE       = "profile.gender"
+	UserProfileDisplayNameAttribute = "profile.display_name"
+	UserProfileAvatarURLAttribute   = "profile.avatar_url"
+	UserProfileGenderAttribute      = "profile.gender"
 )
 
 type User struct {
@@ -49,7 +49,7 @@ func (m *User) BeforeAppendModel(ctx context.Context, query bun.Query) error {
 	switch query.(type) {
 	case *bun.InsertQuery:
 		if m.Id == "" {
-			m.Id = data.DefaultIdWorker().NextHex()
+			m.Id = data.DefaultIDWorker().NextHex()
 		}
 		m.CreatedAt = time.Now()
 		m.UpdatedAt = sql.NullTime{Valid: false}

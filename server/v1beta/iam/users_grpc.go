@@ -74,12 +74,12 @@ func (s *usersServiceServer) Register(ctx context.Context, req *iam_pb.RegisterR
 	if user.Profile.DisplayName == "" {
 		user.Profile.DisplayName = req.Username
 	}
-	user.Attributes[models.USER_PROFILE_DISPLAY_NAME_ATTRIBUTE] = user.Profile.DisplayName
+	user.Attributes[models.UserProfileDisplayNameAttribute] = user.Profile.DisplayName
 	if user.Profile.AvatarUrl.Valid {
-		user.Attributes[models.USER_PROFILE_AVATAR_URL_ATTRIBUTE] = user.Profile.AvatarUrl.String
+		user.Attributes[models.UserProfileAvatarURLAttribute] = user.Profile.AvatarUrl.String
 	}
 	if user.Profile.Gender.Valid {
-		user.Attributes[models.USER_PROFILE_GENDER_ATTRIBUTE] = user.Profile.Gender.String
+		user.Attributes[models.UserProfileGenderAttribute] = user.Profile.Gender.String
 	}
 	login := models.Login{
 		Provider:   LoginProviderFormPassword,

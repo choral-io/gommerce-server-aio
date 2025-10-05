@@ -58,7 +58,7 @@ func main() {
 		fx.Provide(data.NewRedisClient),                           // provide redis client
 		fx.Provide(data.NewRedisSeq),                              // provide redis seq
 		fx.Provide(dlock.NewRedisLocker),                          // provide redis locker
-		fx.Provide(data.NewIdWorker),                              // provide id worker
+		fx.Provide(data.NewIDWorker),                              // provide id worker
 		fx.Provide(data.NewBunDB),                                 // provide bun db
 		fx.Provide(repos.NewDataRepos),                            // provide data repos
 		fx.Provide(secure.NewTokenStore, srv.NewBasicTokenStore),  // provide token stores
@@ -89,7 +89,7 @@ func main() {
 			}, fx.ParamTags(srv.ServerRegistrationsTag)),
 		),
 		fx.Invoke(logging.SetDefaultLogger), // set default logger
-		fx.Invoke(data.SetDefaultIdWorker),  // set default id worker
+		fx.Invoke(data.SetDefaultIDWorker),  // set default id worker
 		fx.Invoke(models.RegisterModels),    // register models
 		fx.Invoke( // register db connection to lifecycle
 			func(bdb bun.IDB, lc fx.Lifecycle) {

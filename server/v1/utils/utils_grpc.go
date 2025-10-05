@@ -51,10 +51,10 @@ func (s *SequenceServiceServer) NextValue(_ context.Context, req *utils_pb.NextV
 type SnowflakeServiceServer struct {
 	utils_pb.UnimplementedSnowflakeServiceServer
 
-	idw data.IdWorker
+	idw data.IDWorker
 }
 
-func NewSnowflakeServiceServer(idw data.IdWorker) utils_pb.SnowflakeServiceServer {
+func NewSnowflakeServiceServer(idw data.IDWorker) utils_pb.SnowflakeServiceServer {
 	return &SnowflakeServiceServer{idw: idw}
 }
 

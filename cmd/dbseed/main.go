@@ -121,7 +121,7 @@ func seed(ctx context.Context) error {
 			Immutable: true,
 			Flags:     0b0000,
 			Attributes: map[string]string{
-				models.USER_PROFILE_DISPLAY_NAME_ATTRIBUTE: "$SYSTEM",
+				models.UserProfileDisplayNameAttribute: "$SYSTEM",
 			},
 			Description: sql.NullString{Valid: true, String: "Built-in system user."},
 		}
@@ -144,7 +144,7 @@ func seed(ctx context.Context) error {
 			Immutable: true,
 			Flags:     0b0000,
 			Attributes: map[string]string{
-				models.USER_PROFILE_DISPLAY_NAME_ATTRIBUTE: "Admin",
+				models.UserProfileDisplayNameAttribute: "Admin",
 			},
 			Description: sql.NullString{Valid: true, String: "Built-in admin user."},
 		}
