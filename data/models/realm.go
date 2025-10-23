@@ -24,6 +24,7 @@ type Realm struct {
 	CreatedAt   time.Time      `bun:"created_at"`
 	UpdatedAt   sql.NullTime   `bun:"updated_at"`
 	DeletedAt   sql.NullTime   `bun:"deleted_at,soft_delete,nullzero"`
+	ExpiresAt   sql.NullTime   `bun:"expires_at"`
 	Flags       int64          `bun:"flags"`
 	Name        string         `bun:"name"`
 	Title       string         `bun:"title"`
