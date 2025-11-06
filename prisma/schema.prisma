@@ -69,7 +69,7 @@ model Profile {
   avatarUrl    String?   @map("avatar_url") @db.VarChar(2048)
   gender       String?   @db.VarChar(32)
   birthdate    DateTime? @db.Date
-  introduction String?   @db.VarChar(128)
+  introduction String?   @db.VarChar(1024)
   user         User      @relation(fields: [id], references: [id], onUpdate: Restrict, map: "fk_profiles_users_id")
 
   @@map("profiles")
