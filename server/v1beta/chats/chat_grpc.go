@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nats-io/nats.go"
@@ -276,7 +277,7 @@ func (s *ChatsServiceServer) ListRecords(ctx context.Context, req *chats_pb.List
 
 func (s *ChatsServiceServer) WatchRecords(_ *chats_pb.WatchRecordsRequest, srv chats_pb.ChatsService_WatchRecordsServer) error {
 	user := secure.IdentityFromContext(srv.Context())
-	csc := make(chan *nats.Msg)
+	csc := make(chan *nats.Msg, 64) // buffered to reduce NATS backpressure
 	cls, err := s.nsc.ChanSubscribe(fmt.Sprintf("chat.records.u.%s", user.Token().Subject()), csc)
 	if err != nil {
 		return err
@@ -288,16 +289,38 @@ func (s *ChatsServiceServer) WatchRecords(_ *chats_pb.WatchRecordsRequest, srv c
 			s.logger.Info(srv.Context(), "unsubscribed from chat.records")
 		}
 	}()
+	keepaliveTimer := time.NewTimer(25 * time.Second)
+	defer func() {
+		if !keepaliveTimer.Stop() {
+			select {
+			case <-keepaliveTimer.C:
+			default:
+			}
+		}
+	}()
 	for {
 		select {
 		case msg := <-csc:
 			record := &chats_pb.Record{}
 			if err := proto.Unmarshal(msg.Data, record); err != nil {
 				s.logger.Error(srv.Context(), "failed to unmarshal chat record", "error", err)
-			}
-			if err := srv.Send(&chats_pb.WatchRecordsResponse{Items: []*chats_pb.Record{record}}); err != nil {
+			} else if err := srv.Send(&chats_pb.WatchRecordsResponse{Items: []*chats_pb.Record{record}}); err != nil {
 				s.logger.Error(srv.Context(), "failed to send chat records", "error", err)
+				return err
 			}
+			if !keepaliveTimer.Stop() {
+				select {
+				case <-keepaliveTimer.C:
+				default:
+				}
+			}
+			keepaliveTimer.Reset(25 * time.Second)
+		case <-keepaliveTimer.C: // send empty message to keep the stream alive
+			if err := srv.Send(&chats_pb.WatchRecordsResponse{Items: []*chats_pb.Record{}}); err != nil {
+				s.logger.Error(srv.Context(), "failed to send chat records", "error", err)
+				return err
+			}
+			keepaliveTimer.Reset(25 * time.Second)
 		case <-srv.Context().Done():
 			if err := srv.Context().Err(); errors.Is(err, context.Canceled) {
 				return nil
