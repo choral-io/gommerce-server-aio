@@ -92,7 +92,7 @@ func (s *ChatsServiceServer) ListSessions(ctx context.Context, req *chats_pb.Lis
 		sids[i] = m.SessionId
 	}
 	records := make([]models.ChatRecord, 0, len(members))
-	rids := s.bdb.NewSelect().Model((*models.ChatRecord)(nil)).ColumnExpr("MAX(id) AS id").Where("session_id IN (?)", bun.In(sids))
+	rids := s.bdb.NewSelect().Model((*models.ChatRecord)(nil)).ColumnExpr("MAX(id) AS id").Where("session_id IN (?)", bun.List(sids))
 	if err := s.bdb.NewSelect().Model(&records).Where("id IN (?)", rids).Scan(ctx); err != nil {
 		return nil, err
 	}
