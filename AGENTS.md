@@ -6,7 +6,7 @@
 - Services: `server/` with versioned APIs in `server/v1` and `server/v1beta`.
 - Data layer: `data/models`, `data/repos`, `data/repos/pgsql`.
 - Config and assets: YAML in `config/` (e.g., `app-local.yaml`); static files embedded from `static/`.
-- Prisma: schema and env in `prisma/` (DB URL in `prisma/.env`).
+- Atlas schema: PostgreSQL schema files in `data/schema/` (e.g., `schema.pg.hcl`), managed via Atlas CLI.
 
 ## Build, Test, and Development Commands
 - Go: 1.25+.
@@ -14,12 +14,12 @@
 - Run (local): `GOMMERCE_CONFIG_PATH=./config/app-local.yaml go run ./cmd/server`.
 - Test: `go test ./... -v -cover`. Focused example: `go test -run Users -v ./server/...`.
 - Vet/format: `go vet ./...`; `go fmt ./...`; `go mod tidy` before PRs.
-- Schema and seed: `npx prisma db pull && npx prisma db push`; `go run ./cmd/dbseed`.
+- Schema and seed: `atlas schema inspect -u $DATA_SOURCE_URL > data/schema/schema.pg.hcl && atlas schema apply -u $DATA_SOURCE_URL --to "file://data/schema"`; `go run ./cmd/dbseed`.
 - JWT keys: `openssl genrsa 2048 | tee >(openssl rsa -pubout 2>/dev/null)`.
 
 ## Coding Style & Naming Conventions
 - Go style: `gofmt`. Package names are short lowercase nouns; exported identifiers use `CamelCase`.
-- Indentation: default 4 spaces; YAML/JSON/Prisma use 2 (see `.editorconfig`).
+- Indentation: default 4 spaces; YAML/JSON/Atlas HCL use 2 (see `.editorconfig`).
 - Final newline: ensure files end with a newline (per `.editorconfig`).
 - Errors: wrap with `%w`; define sentinels as `var ErrX = errors.New(...)`.
 - APIs: accept `ctx context.Context` first; avoid long parameter lists.

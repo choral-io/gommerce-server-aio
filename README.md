@@ -4,8 +4,8 @@ All in one server of project `gommerce`.
 
 ```sh
 # schema
-npx prisma db pull
-npx prisma db push
+atlas schema inspect -u $DATA_SOURCE_URL > data/schema/schema.pg.hcl
+atlas schema apply -u $DATA_SOURCE_URL --to "file://data/schema"
 
 # seed
 go run ./cmd/dbseed/

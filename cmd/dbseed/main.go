@@ -35,7 +35,7 @@ const (
 )
 
 func main() {
-	_ = godotenv.Load("prisma/.env")
+	_ = godotenv.Load("data/schema/.env.local")
 	_ = os.Setenv("GOMMERCE_SEEDING_MODE", "true")
 	log.SetFlags(0)
 	log.Printf("%sSeeding database...%s", ansiBlue, ansiReset)
@@ -48,13 +48,13 @@ func main() {
 
 func seed(ctx context.Context) error {
 	// load env vars
-	driver := os.Getenv("GO_SQL_DATA_DRIVER")
+	driver := os.Getenv("DATA_SOURCE_TYPE")
 	if driver == "" {
 		driver = "pgsql"
 	}
-	source := os.Getenv("GO_SQL_DATA_SOURCE")
+	source := os.Getenv("DATA_SOURCE_URL")
 	if source == "" {
-		return fmt.Errorf("GO_SQL_DATA_SOURCE is not set")
+		return fmt.Errorf("DATA_SOURCE_URL is not set")
 	}
 
 	// create bun db
