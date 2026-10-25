@@ -38,13 +38,13 @@ func WithPagination(p interface {
 	GetSize() int32
 }) SelectQueryTransformer {
 	return SelectQueryTransformerFunc(func(ctx context.Context, sq *bun.SelectQuery) (*bun.SelectQuery, error) {
-		var size = 10
+		var size int64 = 10
 		if p.GetSize() > 0 {
-			size = int(p.GetSize())
+			size = int64(p.GetSize())
 		}
-		var page = 1
+		var page int64 = 1
 		if p.GetPage() > 1 {
-			page = int(p.GetPage())
+			page = int64(p.GetPage())
 		}
 		return sq.Offset((page - 1) * size).Limit(size), nil
 	})
